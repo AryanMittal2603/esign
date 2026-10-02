@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Brand, Chip, ErrorBox, Icon, Keypad, Kicker, OtpInput, Spinner, Words, api } from "@/components/ui";
 import { fmtIST, type Status } from "@/lib/format";
 
-type Report = { token: string; status: Status; project: string; exam: string | null; date: string | null; shift: string | null; centreCode: string; centreName: string; signedAt: string | null };
+type Report = { token: string; status: Status; project: string; exam: string | null; date: string | null; shift: string | null; centreCode: string; centreName: string; signedAt: string | null; uploaded: boolean; photo: boolean };
 type Me = { mobileMasked: string; name: string; reports: Report[] };
 
 /** Direct access without a link: mobile → OTP → the signatory's reports across projects. */
@@ -106,7 +106,10 @@ export default function DirectAccess() {
             return (
               <div key={r.token} className="card lift up" style={{ animationDelay: `${0.85 + i * 0.12}s`, padding: 18, display: "flex", flexDirection: "column", gap: 12, borderColor: signed ? undefined : "#B76A3B" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-                  {signed ? <Chip status="SIGNED" /> : <span className="chip" style={{ background: "#F7EDD5", color: "#7E5B12" }}>Waiting for you</span>}
+                  {signed ? <Chip status="SIGNED" />
+                    : r.photo ? <span className="chip" style={{ background: "#E4EBFB", color: "#2557DA" }}>Photo taken · ready to sign</span>
+                    : r.uploaded ? <span className="chip" style={{ background: "#E4EBFB", color: "#2557DA" }}>In progress · CSR uploaded</span>
+                    : <span className="chip" style={{ background: "#F7EDD5", color: "#7E5B12" }}>Waiting for you</span>}
                   {signed && <span className="mono" style={{ fontSize: 11, color: "#637383" }}>Signed {fmtIST(r.signedAt, false)}</span>}
                 </div>
                 <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-0.015em", lineHeight: 1.2 }}>{r.project}</div>
@@ -118,7 +121,7 @@ export default function DirectAccess() {
                 {signed ? (
                   <a className="btn btn-line" href={`/api/sign/${r.token}/signed`} style={{ width: "100%" }}><Icon name="download" /> Download signed PDF</a>
                 ) : (
-                  <a className="btn btn-ink" href={`/s/${r.token}`} style={{ width: "100%" }}>Continue to sign</a>
+                  <a className="btn btn-ink" href={`/s/${r.token}`} style={{ width: "100%" }}>{r.uploaded ? "Continue where you left off" : "Start"}</a>
                 )}
               </div>
             );

@@ -25,6 +25,8 @@ export async function GET() {
       centreCode: s.centreCode,
       centreName: s.centreName,
       signedAt: s.signedAt,
+      uploaded: !!s.draftKey,
+      photo: !!s.photoKey,
     })),
   });
 }

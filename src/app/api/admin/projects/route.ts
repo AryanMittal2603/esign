@@ -21,7 +21,9 @@ export async function POST(req: Request) {
   if (!(await requireAdmin())) return fail("Sign in first", 401);
   const body = await req.json().catch(() => ({}));
   const name = String(body.name ?? "").trim();
-  if (name.length < 3) return fail("Give the project a name (at least 3 characters).");
+  if (name.length < 3) return fail("Give the exam a name (at least 3 characters).");
+  const clash = await db.project.findFirst({ where: { name: { equals: name, mode: "insensitive" } } });
+  if (clash) return fail(`An exam called "${clash.name}" already exists. Use a different name, e.g. add the shift or date.`, 409);
   const p = await db.project.create({
     data: {
       name,
