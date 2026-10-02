@@ -1,9 +1,8 @@
 import type { OtpPurpose } from "@prisma/client";
 import { db } from "./db";
 import { hashOtp, randomOtp, randomRef, safeEqual } from "./crypto";
-import { sendOtpSms } from "./sms";
+import { otpTtlMinutes, sendOtpSms } from "./sms";
 
-const TTL_MS = 5 * 60 * 1000;
 const RESEND_MS = 30 * 1000;
 const MAX_ATTEMPTS = 5;
 
@@ -25,7 +24,7 @@ export async function issueOtp(mobile: string, purpose: OtpPurpose, signatoryId?
   const sent = await sendOtpSms(mobile, code);
   if (!sent.ok) return { ok: false, error: `Could not send the SMS. ${sent.error}`, status: 502 };
   const row = await db.otp.create({
-    data: { mobile, purpose, signatoryId: signatoryId ?? null, ref, codeHash: hashOtp(code, ref), expiresAt: new Date(Date.now() + TTL_MS) },
+    data: { mobile, purpose, signatoryId: signatoryId ?? null, ref, codeHash: hashOtp(code, ref), expiresAt: new Date(Date.now() + otpTtlMinutes() * 60 * 1000) },
   });
   return { ok: true, ref, sentAt: row.createdAt, resendIn: RESEND_MS / 1000 };
 }

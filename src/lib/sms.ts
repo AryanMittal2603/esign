@@ -33,7 +33,32 @@ export async function sendOtpSms(mobile: string, otp: string): Promise<SendResul
     console.log(`\n[sms:console] OTP for +91 ${mobile}: ${otp}\n`);
     return { ok: true };
   }
-  return callAuthkey({ mobile, sid: process.env.AUTHKEY_OTP_SID ?? "", otp });
+  return callAuthkey({ mobile, sid: process.env.AUTHKEY_OTP_SID ?? "", ...templateVars(process.env.AUTHKEY_OTP_VARS || "otp={otp}", { otp }) });
+}
+
+/**
+ * Authkey fills each {#name#} in a DLT template from the URL parameter of the same name.
+ * AUTHKEY_OTP_VARS maps your template's variable names to values, e.g. "otp={otp}&company=SeqreSign".
+ * Placeholders: {otp}, {site} (APP_URL host), {minutes} (OTP validity).
+ */
+export function templateVars(spec: string, values: Record<string, string>): Record<string, string> {
+  const all: Record<string, string> = {
+    site: new URL(process.env.APP_URL ?? "http://localhost:3000").host,
+    minutes: String(otpTtlMinutes()),
+    ...values,
+  };
+  const out: Record<string, string> = {};
+  for (const pair of spec.split("&")) {
+    const [k, ...rest] = pair.split("=");
+    if (!k?.trim()) continue;
+    out[k.trim()] = rest.join("=").replace(/\{(\w+)\}/g, (_, key) => all[key] ?? "");
+  }
+  return out;
+}
+
+export function otpTtlMinutes(): number {
+  const n = Number(process.env.OTP_TTL_MINUTES);
+  return Number.isFinite(n) && n >= 1 && n <= 30 ? n : 10;
 }
 
 export function linkSmsAvailable(): boolean {
@@ -48,7 +73,7 @@ export async function sendLinkSms(mobile: string, name: string, link: string): P
   if (!process.env.AUTHKEY_LINK_SID) {
     return { ok: false, error: "No SMS template for signing links yet. Set AUTHKEY_LINK_SID, or send by WhatsApp / copy link." };
   }
-  return callAuthkey({ mobile, sid: process.env.AUTHKEY_LINK_SID, name, link });
+  return callAuthkey({ mobile, sid: process.env.AUTHKEY_LINK_SID, ...templateVars(process.env.AUTHKEY_LINK_VARS || "name={name}&link={link}", { name, link }) });
 }
 
 export function signingLink(token: string): string {

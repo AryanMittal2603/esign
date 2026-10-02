@@ -4,7 +4,7 @@ Secure eSign for examination centre **Satisfactory Reports (CSR)**. The exam off
 
 - **Admin dashboard** (desktop): `/admin`
 - **Signatory web app** (mobile): `/s/<token>` from the SMS, or `/sign` without a link (mobile + OTP gate)
-- Opening `/` sends phones to `/sign` and desktops to `/admin`.
+- Opening `/` sends phones (and any screen narrower than 820 px) to `/sign`, desktops to `/admin`.
 
 ## Run locally
 
@@ -45,12 +45,15 @@ Set `APP_URL` in `.env` to that address so SMS links point to it.
 | `STORAGE_DIR` | Where encrypted files live (default `./storage`) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Super Admin created by `npm run db:seed` (re-run to reset the password) |
 | `SMS_MODE` | `authkey` sends real SMS · `console` prints OTPs and links to the server log |
-| `AUTHKEY_API_KEY`, `AUTHKEY_OTP_SID` | Authkey account and OTP template (`otp` variable) |
+| `AUTHKEY_API_KEY`, `AUTHKEY_OTP_SID` | Authkey account and OTP template |
+| `AUTHKEY_OTP_VARS` | Maps the template's `{#variable#}` names to values, e.g. `otp={otp}&site={site}`. Placeholders: `{otp}` `{site}` `{minutes}`. Names must match the template exactly or the SMS arrives with blanks |
+| `AUTHKEY_LINK_VARS` | Same for the link template. Placeholders: `{name}` `{link}` |
+| `OTP_TTL_MINUTES` | OTP validity (default 10) — keep it equal to what the SMS text promises |
 | `AUTHKEY_LINK_SID` | Authkey DLT template for the signing-link SMS (variables `name`, `link`). Until set, share links with WhatsApp / Copy link |
 
 ## How signing works
 
-1. **Access OTP** — 6 digits, 5-minute expiry, 30 s resend cooldown, 5 attempts. Verifying sets a 2-hour session for that mobile number only.
+1. **Access OTP** — 6 digits, 10-minute expiry (`OTP_TTL_MINUTES`), 30 s resend cooldown, 5 attempts. Verifying sets a 2-hour session for that mobile number only.
 2. **Upload** — PDF / JPG / PNG, any number of pages, merged into one PDF. Replaceable until signed.
 3. **Live photo** — front camera only (no gallery), MediaPipe face detection in the browser, GPS required.
 4. **Consent** — two declarations, recorded in the audit log.

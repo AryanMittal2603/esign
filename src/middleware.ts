@@ -6,10 +6,12 @@ const MOBILE_UA = /Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i;
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Responsive entry: phones go to the signatory gate, desktops to the admin dashboard.
+  // Responsive entry: phones go to the signatory gate. Anything not clearly a phone falls
+  // through to the root page, which decides by screen width in the browser.
   if (pathname === "/") {
-    const mobile = MOBILE_UA.test(req.headers.get("user-agent") ?? "");
-    return NextResponse.redirect(new URL(mobile ? "/sign" : "/admin", req.url));
+    const mobile = MOBILE_UA.test(req.headers.get("user-agent") ?? "") || req.headers.get("sec-ch-ua-mobile") === "?1";
+    if (mobile) return NextResponse.redirect(new URL("/sign", req.url));
+    return NextResponse.next();
   }
 
   const isAdminPage = pathname.startsWith("/admin") && pathname !== "/admin/login";
