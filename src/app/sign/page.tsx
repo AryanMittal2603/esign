@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Brand, Chip, ErrorBox, Icon, Kicker, OtpInput, Spinner, Words, api } from "@/components/ui";
+import { Brand, Chip, ErrorBox, Icon, Keypad, Kicker, OtpInput, Spinner, Words, api } from "@/components/ui";
 import { fmtIST, type Status } from "@/lib/format";
 
 type Report = { token: string; status: Status; project: string; exam: string | null; date: string | null; shift: string | null; centreCode: string; centreName: string; signedAt: string | null };
@@ -50,13 +50,13 @@ export default function DirectAccess() {
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16 }}>
             <PhoneArt />
             <Kicker delay={0.4}>No link? No problem.</Kicker>
-            <h1 className="h1" style={{ fontSize: 36, lineHeight: 1 }}><Words text="Verify your mobile to find your reports." start={0.5} accent={1} color="#B76A3B" /></h1>
+            <h1 className="h1" style={{ fontSize: 32, lineHeight: 1 }}><Words text="Verify your mobile to find your reports." start={0.5} accent={1} color="#B76A3B" /></h1>
             <p className="sub up" style={{ animationDelay: "1.1s" }}>Use the mobile number the exam office registered for you. Signing opens only after it is verified.</p>
             <label className="up" style={{ animationDelay: "1.25s", display: "block" }}>
               <span className="label">Registered mobile</span>
               <span style={{ display: "flex", gap: 8 }}>
                 <span className="field" style={{ width: 72, flex: "none", display: "grid", placeItems: "center", fontWeight: 600 }}>+91</span>
-                <input className="field" inputMode="numeric" autoComplete="tel-national" maxLength={10} placeholder="10-digit number" value={mobile}
+                <input className="field" inputMode="none" autoComplete="tel-national" maxLength={10} placeholder="10-digit number" value={mobile}
                   onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
                   onKeyDown={(e) => { if (e.key === "Enter" && mobile.length === 10) send(); }}
                   aria-label="Registered mobile number" />
@@ -64,6 +64,7 @@ export default function DirectAccess() {
             </label>
             <ErrorBox>{err}</ErrorBox>
           </div>
+          <Keypad value={mobile} onChange={setMobile} max={10} disabled={busy} />
           <button className="btn btn-ink up" type="button" style={{ animationDelay: "1.45s", width: "100%", minHeight: 54 }} disabled={mobile.length !== 10 || busy} onClick={send}>
             {busy ? <Spinner /> : null} Send OTP
           </button>
@@ -82,6 +83,7 @@ export default function DirectAccess() {
           <div className="up" style={{ animationDelay: "1.05s" }}><button className="link" type="button" onClick={send} disabled={busy}>Send a new code</button></div>
           <ErrorBox>{err}</ErrorBox>
           <div style={{ flex: 1 }} />
+          <Keypad value={code} onChange={setCode} max={6} disabled={busy} />
           <button className="btn btn-ink up" type="button" style={{ animationDelay: "1.15s", width: "100%", minHeight: 54 }} disabled={code.length < 6 || busy} onClick={verify}>
             {busy ? <Spinner /> : null} Verify
           </button>
@@ -105,11 +107,13 @@ export default function DirectAccess() {
               <div key={r.token} className="card lift up" style={{ animationDelay: `${0.85 + i * 0.12}s`, padding: 18, display: "flex", flexDirection: "column", gap: 12, borderColor: signed ? undefined : "#B76A3B" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                   {signed ? <Chip status="SIGNED" /> : <span className="chip" style={{ background: "#F7EDD5", color: "#7E5B12" }}>Waiting for you</span>}
-                  <span className="mono" style={{ fontSize: 11, color: "#637383" }}>{signed ? fmtIST(r.signedAt, false) : [r.date, r.shift].filter(Boolean).join(" · ")}</span>
+                  {signed && <span className="mono" style={{ fontSize: 11, color: "#637383" }}>Signed {fmtIST(r.signedAt, false)}</span>}
                 </div>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.01em" }}>{r.exam ?? r.project}</div>
-                  <div style={{ fontSize: 13, color: "#637383", marginTop: 4 }}>{r.project} · Centre {r.centreCode} · {r.centreName}</div>
+                <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-0.015em", lineHeight: 1.2 }}>{r.project}</div>
+                <div style={{ borderRadius: 12, background: "#F3F6F4", padding: "2px 14px" }}>
+                  {r.exam && <div className="kv"><span>Exam</span><span>{r.exam}</span></div>}
+                  {(r.date || r.shift) && <div className="kv"><span>Date</span><span>{[r.date, r.shift].filter(Boolean).join(" · ")}</span></div>}
+                  <div className="kv"><span>Centre</span><span>{r.centreCode} · {r.centreName}</span></div>
                 </div>
                 {signed ? (
                   <a className="btn btn-line" href={`/api/sign/${r.token}/signed`} style={{ width: "100%" }}><Icon name="download" /> Download signed PDF</a>
@@ -129,7 +133,7 @@ export default function DirectAccess() {
 
 function PhoneArt() {
   return (
-    <svg width="84" height="84" viewBox="0 0 84 84" fill="none" aria-hidden="true">
+    <svg width="60" height="60" viewBox="0 0 84 84" fill="none" aria-hidden="true">
       <rect x="24" y="8" width="36" height="68" rx="8" stroke="#142844" strokeWidth="2.4" pathLength={1} className="draw" style={{ animationDelay: ".3s" }} />
       <path d="M37 66h10" stroke="#142844" strokeWidth="2.4" strokeLinecap="round" pathLength={1} className="draw" style={{ animationDelay: ".9s" }} />
       <circle cx="62" cy="58" r="15" fill="#B76A3B" className="pop" style={{ animationDelay: "1.1s", transformBox: "fill-box", transformOrigin: "center" }} />

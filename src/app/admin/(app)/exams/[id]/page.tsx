@@ -41,6 +41,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [sel, setSel] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [menu, setMenu] = useState(false);
   const [sending, setSending] = useState(false);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [toast, say] = useToast();
@@ -58,7 +59,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     return data.signatories.map((s, i) => {
       const g = GROUPS.find((x) => x.match.includes(s.status))!;
       const c = i % cols, r = Math.floor(i / cols);
-      return { id: s.id, title: `${s.centreCode} · ${s.centreName} · ${STATUS_META[s.status].label}`, bg: STATUS_META[s.status].tile, group: g.key, d: Math.min(2.4, 0.9 + (c + r * 0.7) * 0.03).toFixed(3) };
+      return { id: s.id, title: `${s.name} · ${s.centreCode} · ${STATUS_META[s.status].label}`, bg: STATUS_META[s.status].tile, group: g.key, d: Math.min(2.4, 0.9 + (c + r * 0.7) * 0.03).toFixed(3) };
     });
   }, [data]);
 
@@ -94,11 +95,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   const unsent = stats.byStatus.IMPORTED ?? 0;
   const kpis = [
-    { label: "Signatories", v: stats.total, fg: "#142844", bar: "#142844", note: "1 per centre" },
-    { label: "Links sent", v: stats.sent, fg: "#142844", bar: "#A8BBC2", note: `${unsent} not sent yet` },
+    { label: "Signatories", v: stats.total, fg: "#142844", bar: "#142844", note: "one per centre" },
+    { label: "Links sent", v: stats.sent, fg: "#142844", bar: "#A8BBC2", note: unsent ? `${unsent} not sent yet` : "all sent" },
     { label: "Opened", v: stats.opened, fg: "#2557DA", bar: "#2557DA", note: `${pctOf(stats.opened, stats.total)}% opened their link` },
     { label: "Uploaded", v: stats.uploaded, fg: "#7E5B12", bar: "#C9962B", note: `${pctOf(stats.uploaded, stats.total)}% uploaded a CSR` },
-    { label: "Signed", v: stats.signed, fg: "#2E7567", bar: "#2E7567", note: `${pct}% done · ${stats.pending} to go` },
+    { label: "Signed", v: stats.signed, fg: "#2E7567", bar: "#2E7567", note: stats.pending ? `${pct}% done · ${stats.pending} to go` : "all signed" },
   ];
   const tabs = [
     { key: "all" as const, label: "All", n: stats.total },
@@ -106,113 +107,131 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     { key: "pending" as const, label: "Pending", n: stats.pending },
     { key: "unsent" as const, label: "Not sent", n: unsent },
   ];
+  const facts = [
+    ["Exam", data.project.examName],
+    ["Date", data.project.examDate],
+    ["Shift", data.project.shift],
+    ["Signatories", String(stats.total)],
+  ].filter(([, v]) => v) as [string, string][];
   const shown = rows.slice(page * PAGE, page * PAGE + PAGE);
   const pages = Math.max(1, Math.ceil(rows.length / PAGE));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 20 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
-          <div className="mono fade" style={{ fontSize: 12, color: "#637383" }}><Link href="/admin/exams" style={{ color: "#637383" }}>Exams</Link> / <span style={{ color: "#142844" }}>{data.project.name}</span></div>
-          <Kicker delay={0.2}>Live · updated {updated ? fmtTimeIST(updated) : ""}</Kicker>
-          <h1 style={{ fontSize: "clamp(30px, 3.6vw, 48px)", lineHeight: 1, fontWeight: 800, letterSpacing: "-0.04em" }}><Words text={data.project.name} start={0.3} /></h1>
-          <div className="up mono" style={{ animationDelay: ".8s", fontSize: 12, color: "#637383" }}>{[data.project.examName, data.project.examDate, data.project.shift, `${stats.total} centres`].filter(Boolean).join(" · ")}</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="mono fade" style={{ fontSize: 12, color: "#637383", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <span><Link href="/admin/exams" style={{ color: "#637383" }}>Exams</Link> / <span style={{ color: "#142844" }}>{data.project.name}</span></span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#2E7567" }}><span className="live" /> Live · updated {updated ? fmtTimeIST(updated) : ""}</span>
         </div>
-        <div className="up" style={{ animationDelay: ".7s", display: "flex", flexWrap: "wrap", gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" type="button" onClick={() => setDeleting(true)} style={{ color: "#B23A3A" }}><Icon name="trash" size={16} /> Delete exam</button>
-          <button className="btn btn-line btn-sm" type="button" onClick={() => setAdding(true)}><Icon name="plus" size={16} /> Add signatory</button>
-          <Link className="btn btn-line btn-sm" href={`/admin/exams/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
-          <a className="btn btn-line btn-sm" href={`/api/admin/projects/${id}/export`}><Icon name="sheet" size={16} /> Export Excel</a>
-          <a className="btn btn-line btn-sm" href={stats.signed ? `/api/admin/projects/${id}/zip` : undefined} aria-disabled={!stats.signed} style={stats.signed ? undefined : { opacity: 0.4, pointerEvents: "none" }}><Icon name="download" size={16} /> ZIP · {stats.signed} signed</a>
-          {unsent > 0 ? (
-            <button className="btn btn-ink btn-sm" type="button" disabled={sending} onClick={() => sms(null, "unsent")}>{sending ? <Spinner /> : <Icon name="send" size={16} />} Send {unsent} links</button>
-          ) : stats.pending > 0 ? (
-            <button className="btn btn-ink btn-sm" type="button" disabled={sending} onClick={() => sms(null, "pending")}>{sending ? <Spinner /> : <Icon name="send" size={16} />} Remind {stats.pending} pending</button>
-          ) : null}
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+          <h1 style={{ fontSize: "clamp(28px, 3vw, 40px)", lineHeight: 1.05, fontWeight: 800, letterSpacing: "-0.035em", minWidth: 0 }}><Words text={data.project.name} start={0.2} /></h1>
+          <div className="up" style={{ animationDelay: ".5s", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", position: "relative" }}>
+            <button className="btn btn-line btn-sm" type="button" onClick={() => setAdding(true)}><Icon name="plus" size={16} /> Add signatory</button>
+            <Link className="btn btn-line btn-sm" href={`/admin/exams/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
+            {unsent > 0 && data.sms.linkSms ? (
+              <button className="btn btn-ink btn-sm" type="button" disabled={sending} onClick={() => sms(null, "unsent")}>{sending ? <Spinner /> : <Icon name="send" size={16} />} Send {unsent} {plural(unsent, "link", "links")}</button>
+            ) : stats.pending > 0 && stats.sent > 0 && data.sms.linkSms ? (
+              <button className="btn btn-ink btn-sm" type="button" disabled={sending} onClick={() => sms(null, "pending")}>{sending ? <Spinner /> : <Icon name="send" size={16} />} Remind {stats.pending} pending</button>
+            ) : null}
+            <button className="icon-btn" type="button" aria-label="More actions" aria-expanded={menu} onClick={() => setMenu(!menu)} style={{ width: 38, height: 38 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+            </button>
+            {menu && (
+              <>
+                <div onClick={() => setMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} aria-hidden="true" />
+                <div className="card pop" role="menu" style={{ position: "absolute", right: 0, top: 46, zIndex: 41, width: 240, padding: 6, display: "flex", flexDirection: "column" }}>
+                  <a className="menu-item" role="menuitem" href={`/api/admin/projects/${id}/export`} onClick={() => setMenu(false)}><Icon name="sheet" size={16} /> Export Excel</a>
+                  <a className="menu-item" role="menuitem" href={stats.signed ? `/api/admin/projects/${id}/zip` : undefined} aria-disabled={!stats.signed} onClick={() => setMenu(false)} style={stats.signed ? undefined : { opacity: 0.4, pointerEvents: "none" }}><Icon name="download" size={16} /> Download signed ZIP · {stats.signed}</a>
+                  <div style={{ height: 1, background: "#E6ECEC", margin: "4px 6px" }} />
+                  <button className="menu-item" role="menuitem" type="button" onClick={() => { setMenu(false); setDeleting(true); }} style={{ color: "#B23A3A" }}><Icon name="trash" size={16} /> Delete exam</button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
+        {facts.length > 0 && (
+          <div className="up" style={{ animationDelay: ".4s", display: "flex", flexWrap: "wrap", gap: "6px 22px" }}>
+            {facts.map(([k2, v]) => (
+              <span key={k2} style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
+                <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "#637383" }}>{k2}</span>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{v}</span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {!data.sms.linkSms && (
-        <div className="note up" style={{ animationDelay: ".8s" }}>
-          <Icon name="info" style={{ marginTop: 1 }} />
-          <span>SMS for signing links needs a DLT-approved Authkey template. Set <b>AUTHKEY_LINK_SID</b> in <span className="mono">.env</span>. Until then, share links with WhatsApp or Copy link on each row. OTP SMS already works.</span>
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 12 }}>
+      <section className="card up" style={{ animationDelay: ".45s", padding: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }} aria-label="Progress">
         {kpis.map((x, i) => (
-          <div key={x.label} className="card up lift" style={{ animationDelay: `${0.4 + i * 0.07}s`, padding: "18px 18px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div key={x.label} style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8, borderLeft: i ? "1px solid #EEF2F1" : 0 }}>
             <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "#637383" }}>{x.label}</span>
-            <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: x.fg }}>{Math.round(x.v * k)}</span>
-            <span style={{ height: 5, borderRadius: 3, background: "#E6ECEC", overflow: "hidden" }}><span className="grow" style={{ display: "block", height: "100%", width: `${stats.total ? (x.v / stats.total) * 100 : 0}%`, background: x.bar, borderRadius: 3, animationDelay: `${0.4 + i * 0.07}s`, transition: "width .6s ease" }} /></span>
-            <span style={{ fontSize: 12.5, color: "#637383" }}>{x.note}</span>
+            <span style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: x.fg }}>{Math.round(x.v * k)}</span>
+            <span style={{ height: 4, borderRadius: 2, background: "#E6ECEC", overflow: "hidden" }}><span className="grow" style={{ display: "block", height: "100%", width: `${stats.total ? (x.v / stats.total) * 100 : 0}%`, background: x.bar, borderRadius: 2, animationDelay: `${0.5 + i * 0.07}s`, transition: "width .6s ease" }} /></span>
+            <span style={{ fontSize: 12, color: "#637383" }}>{x.note}</span>
           </div>
         ))}
-      </div>
+      </section>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
-        <section className="card up" style={{ animationDelay: ".9s", flex: "2 1 560px", minWidth: 0, padding: "22px 24px", display: "flex", flexDirection: "column", gap: 18 }} aria-label="Centre wall">
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 16, alignItems: "flex-start" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <Kicker delay={1}>Centre wall · one tile per centre</Kicker>
-              <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em" }}>{Math.round(stats.signed * k)} of {stats.total} centres signed</h2>
+        <section className="card up" style={{ animationDelay: ".6s", flex: "2 1 520px", minWidth: 0, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 16 }} aria-label="Signatory wall">
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+              <Kicker delay={0.7}>Signatory wall · one tile each</Kicker>
+              <h2 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.025em" }}>{Math.round(stats.signed * k)} of {stats.total} {plural(stats.total, "signatory", "signatories")} signed</h2>
             </div>
-            <div style={{ position: "relative", width: 84, height: 84, flex: "none" }}>
-              <svg width="84" height="84" viewBox="0 0 84 84" fill="none" aria-hidden="true" style={{ transform: "rotate(-90deg)" }}>
-                <circle cx="42" cy="42" r="34" stroke="#E6ECEC" strokeWidth="9" />
-                <circle cx="42" cy="42" r="34" stroke="#2E7567" strokeWidth="9" strokeLinecap="round" pathLength={100} strokeDasharray={`${(pct * k).toFixed(1)} 100`} />
+            <div style={{ position: "relative", width: 68, height: 68, flex: "none" }}>
+              <svg width="68" height="68" viewBox="0 0 84 84" fill="none" aria-hidden="true" style={{ transform: "rotate(-90deg)" }}>
+                <circle cx="42" cy="42" r="34" stroke="#E6ECEC" strokeWidth="10" />
+                <circle cx="42" cy="42" r="34" stroke="#2E7567" strokeWidth="10" strokeLinecap="round" pathLength={100} strokeDasharray={`${(pct * k).toFixed(1)} 100`} />
               </svg>
-              <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontWeight: 800, fontSize: 20, letterSpacing: "-0.03em" }}>{Math.round(pct * k)}%</span>
+              <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontWeight: 800, fontSize: 16, letterSpacing: "-0.03em" }}>{Math.round(pct * k)}%</span>
             </div>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} role="group" aria-label="Focus a status">
             {GROUPS.map((g) => {
-              const n = g.match.reduce((a, s) => a + (stats.byStatus[s] ?? 0), 0);
+              const n = g.match.reduce((a, st) => a + (stats.byStatus[st] ?? 0), 0);
               const on = focus === g.key;
               return (
-                <button key={g.key} className="tab" type="button" aria-pressed={on} onClick={() => setFocus(on ? null : g.key)} style={{ background: on ? "#DCECF2" : "#fff", borderColor: on ? "#142844" : "#D4DEE0", color: "#142844" }}>
-                  <span style={{ width: 10, height: 10, borderRadius: 3, background: STATUS_META[g.match[0]].tile }} /> {g.label} <span className="mono" style={{ fontSize: 11, color: "#637383" }}>{n}</span>
+                <button key={g.key} className="tab" type="button" aria-pressed={on} onClick={() => setFocus(on ? null : g.key)} style={{ height: 30, padding: "0 10px", fontSize: 12.5, background: on ? "#DCECF2" : "#fff", borderColor: on ? "#142844" : "#D4DEE0", color: "#142844" }}>
+                  <span style={{ width: 9, height: 9, borderRadius: 3, background: STATUS_META[g.match[0]].tile }} /> {g.label} <span className="mono" style={{ fontSize: 11, color: "#637383" }}>{n}</span>
                 </button>
               );
             })}
           </div>
           {wall.length === 0 ? (
-            <div style={{ padding: "30px 0", textAlign: "center", color: "#637383" }}>No signatories yet. <Link href={`/admin/exams/${id}/import`}>Import a CSV</Link> or add one by hand.</div>
+            <div style={{ padding: "24px 0", textAlign: "center", color: "#637383" }}>No signatories yet. <Link href={`/admin/exams/${id}/import`}>Import a CSV</Link> or add one by hand.</div>
           ) : (
-            <div className="wall" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${wall.length <= 60 ? 34 : wall.length <= 240 ? 20 : 13}px, 1fr))`, gap: wall.length <= 60 ? 6 : 3 }}>
+            <div className="wall" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${wall.length <= 60 ? 30 : wall.length <= 240 ? 20 : 13}px, 1fr))`, gap: wall.length <= 60 ? 6 : 3 }}>
               {wall.map((t) => (
                 <button key={t.id} type="button" className="tile" title={t.title} aria-label={t.title} onClick={() => setSel(t.id)}
-                  style={{ background: t.bg, opacity: !focus || focus === t.group ? 1 : 0.16, animationDelay: `${t.d}s`, border: 0, padding: 0, cursor: "pointer" }} />
+                  style={{ background: t.bg, opacity: !focus || focus === t.group ? 1 : 0.16, animationDelay: `${t.d}s`, border: 0, padding: 0, cursor: "pointer", maxWidth: 44 }} />
               ))}
             </div>
           )}
         </section>
 
-        <section className="card up" style={{ animationDelay: "1s", flex: "1 1 300px", minWidth: 0, padding: 22, display: "flex", flexDirection: "column", gap: 12 }} aria-label="Recent signatures">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Kicker delay={1.1}>Just signed</Kicker>
-            <span className="live" />
-          </div>
-          {data.recent.length === 0 && <div style={{ color: "#637383", fontSize: 14, padding: "12px 0" }}>Signatures will appear here as they happen.</div>}
+        <section className="card up" style={{ animationDelay: ".7s", flex: "1 1 280px", minWidth: 0, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 10 }} aria-label="Recent signatures">
+          <Kicker delay={0.8}>Just signed</Kicker>
+          {data.recent.length === 0 && <div style={{ color: "#637383", fontSize: 14, padding: "8px 0" }}>Signatures will appear here as they happen.</div>}
           {data.recent.map((r, i) => (
-            <button key={r.id} type="button" className="row-btn up" onClick={() => setSel(r.id)} style={{ animationDelay: `${1.2 + i * 0.09}s`, display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid #EEF2F1" }}>
+            <button key={r.id} type="button" className="row-btn up" onClick={() => setSel(r.id)} style={{ animationDelay: `${0.9 + i * 0.08}s`, display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: "1px solid #EEF2F1" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/api/admin/signatories/${r.id}/file?kind=photo`} alt="" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", background: "#2A4A78", flex: "none" }} />
-              <span style={{ flex: 1, minWidth: 0 }}><span className="ellipsis" style={{ display: "block", fontWeight: 700, fontSize: 14 }}>{r.name}</span><span className="mono ellipsis" style={{ display: "block", fontSize: 11, color: "#637383", marginTop: 2 }}>Centre {r.centreCode} · {r.centreName}</span></span>
+              <img src={`/api/admin/signatories/${r.id}/file?kind=photo`} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", background: "#2A4A78", flex: "none" }} />
+              <span style={{ flex: 1, minWidth: 0 }}><span className="ellipsis" style={{ display: "block", fontWeight: 700, fontSize: 14 }}>{r.name}</span><span className="mono ellipsis" style={{ display: "block", fontSize: 11, color: "#637383", marginTop: 2 }}>{r.centreCode} · {r.centreName}</span></span>
               <span className="mono" style={{ fontSize: 11.5, color: "#2E7567", fontWeight: 600 }}>{fmtTimeIST(r.signedAt)}</span>
             </button>
           ))}
           <div style={{ flex: 1 }} />
-          <div style={{ borderRadius: 14, background: "#DCECF2", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ borderRadius: 14, background: "#DCECF2", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 3 }}>
             <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".1em", textTransform: "uppercase" }}>Signing pace</span>
-            <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em" }}>{data.lastHour} in the last hour</span>
-            <span style={{ fontSize: 12.5, color: "#3E5266" }}>{stats.pending ? (data.lastHour ? `At this pace, about ${Math.ceil(stats.pending / data.lastHour)} h to finish.` : `${stats.pending} centres still to sign.`) : "Every centre has signed."}</span>
+            <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}>{data.lastHour} in the last hour</span>
+            <span style={{ fontSize: 12.5, color: "#3E5266" }}>{stats.pending ? (data.lastHour ? `At this pace, about ${Math.ceil(stats.pending / data.lastHour)} h to finish.` : `${stats.pending} ${plural(stats.pending, "signatory", "signatories")} still to sign.`) : stats.total ? "Everyone has signed." : "Add signatories to begin."}</span>
           </div>
         </section>
       </div>
 
-      <section className="card up" style={{ animationDelay: "1.1s", padding: 0, overflow: "hidden" }} aria-label="Signatories">
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "18px 20px", borderBottom: "1px solid #E6ECEC" }}>
+      <section className="card up" style={{ animationDelay: ".8s", padding: 0, overflow: "hidden" }} aria-label="Signatories">
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "14px 18px", borderBottom: "1px solid #E6ECEC" }}>
           <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }} role="tablist" aria-label="Filter by status">
             {tabs.map((t) => (
               <button key={t.key} className="tab" type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)} style={{ background: tab === t.key ? "#142844" : "transparent", color: tab === t.key ? "#fff" : "#637383" }}>
@@ -221,46 +240,57 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             ))}
           </div>
           <label style={{ position: "relative", flex: "0 1 300px", minWidth: 200 }}>
-            <Icon name="search" size={16} color="#637383" stroke={2} style={{ position: "absolute", left: 14, top: 13 }} />
-            <input className="field" style={{ height: 42, paddingLeft: 40, fontSize: 14 }} placeholder="Search centre, name, code or mobile" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search signatories" />
+            <Icon name="search" size={16} color="#637383" stroke={2} style={{ position: "absolute", left: 14, top: 12 }} />
+            <input className="field" style={{ height: 40, paddingLeft: 40, fontSize: 14 }} placeholder="Search name, mobile or centre" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search signatories" />
           </label>
         </div>
         <div style={{ overflowX: "auto" }}>
-          <div style={{ minWidth: 1120 }}>
-            <div className="grid-row th" style={{ gridTemplateColumns: COLS }}><span>Code</span><span>Centre</span><span>Signatory</span><span>Status</span><span>eSigned at</span><span>Location</span><span style={{ textAlign: "right" }}>Actions</span></div>
+          <div style={{ minWidth: 820 }}>
+            <div className="grid-row th" style={{ gridTemplateColumns: COLS }}><span>Signatory</span><span>Centre</span><span>Status</span><span>eSigned</span><span style={{ textAlign: "right" }}>Actions</span></div>
             {shown.map((s, i) => {
               const signed = s.status === "SIGNED";
               return (
-                <div key={s.id} className="grid-row tr up" style={{ gridTemplateColumns: COLS, animationDelay: `${Math.min(1.6, 1.2 + i * 0.03)}s` }}>
-                  <span className="mono" style={{ fontWeight: 600 }}>{s.centreCode}</span>
-                  <span style={{ minWidth: 0 }}><button className="row-btn" type="button" onClick={() => setSel(s.id)} style={{ fontWeight: 700 }}>{s.centreName}</button></span>
-                  <span style={{ minWidth: 0 }}><span style={{ display: "block", fontWeight: 600 }}>{s.name}</span><span className="mono" style={{ display: "block", fontSize: 11, color: "#637383", marginTop: 3 }}>+91 {s.mobile}</span></span>
+                <div key={s.id} className="grid-row tr up" style={{ gridTemplateColumns: COLS, animationDelay: `${Math.min(1.3, 0.9 + i * 0.03)}s` }}>
+                  <span style={{ minWidth: 0 }}>
+                    <button className="row-btn ellipsis" type="button" onClick={() => setSel(s.id)} style={{ display: "block", maxWidth: "100%", fontWeight: 700 }}>{s.name}</button>
+                    <span className="mono" style={{ display: "block", fontSize: 11.5, color: "#637383", marginTop: 3 }}>+91 {s.mobile}</span>
+                  </span>
+                  <span style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
+                    <span className="mono" style={{ flex: "none", fontSize: 11.5, fontWeight: 600, padding: "3px 7px", borderRadius: 6, background: "#EEF2F1" }}>{s.centreCode}</span>
+                    <span className="ellipsis" title={s.centreName} style={{ minWidth: 0 }}>{s.centreName}</span>
+                  </span>
                   <span><Chip status={s.status} /></span>
-                  <span className="mono" style={{ fontSize: 12.5, color: signed ? "#142844" : "#8C99A6" }}>{signed ? fmtIST(s.signedAt) : "Not yet"}</span>
-                  <span className="mono" style={{ fontSize: 12, color: "#637383", display: "flex", alignItems: "center", gap: 6 }}>
-                    {s.geoLat != null ? <><Icon name="pin" size={14} stroke={2} color="#2E7567" /><a href={`https://www.google.com/maps?q=${s.geoLat},${s.geoLng}`} target="_blank" rel="noopener noreferrer" style={{ color: "#637383" }}>{fmtGeo(s.geoLat, s.geoLng)}</a></> : "—"}
+                  <span style={{ minWidth: 0 }}>
+                    {signed ? (
+                      <>
+                        <span className="mono" style={{ display: "block", fontSize: 12.5 }}>{fmtIST(s.signedAt, false)}</span>
+                        {s.geoLat != null && <a className="mono" href={`https://www.google.com/maps?q=${s.geoLat},${s.geoLng}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#637383", marginTop: 3 }}><Icon name="pin" size={12} stroke={2} color="#2E7567" />{fmtGeo(s.geoLat, s.geoLng)}</a>}
+                      </>
+                    ) : <span className="mono" style={{ fontSize: 12.5, color: "#8C99A6" }}>Not yet</span>}
                   </span>
                   <span style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
-                    <button className="icon-btn" type="button" aria-label="Copy secure link" title="Copy secure link" onClick={() => copy(s)} disabled={signed}><Icon name="link" size={16} /></button>
-                    <button className="icon-btn" type="button" aria-label="Send link by SMS" title={data.sms.linkSms ? "Send link by SMS" : "Link SMS template not set"} onClick={() => sms([s.id])} disabled={signed || !data.sms.linkSms || sending}><Icon name="sms" size={16} /></button>
-                    <button className="icon-btn" type="button" aria-label="Send link on WhatsApp" title="Send link on WhatsApp" onClick={() => whatsapp(s)} disabled={signed}><Icon name="whatsapp" size={16} /></button>
-                    <a className="icon-btn" aria-label="Download signed PDF" title="Download signed PDF" href={signed ? `/api/admin/signatories/${s.id}/file?kind=signed` : undefined} style={signed ? undefined : { opacity: 0.3, pointerEvents: "none" }}><Icon name="download" size={16} /></a>
-                    <button className="icon-btn" type="button" aria-label="Open details" onClick={() => setSel(s.id)} style={{ background: "#142844", color: "#fff", borderColor: "#142844" }}><Icon name="next" size={16} /></button>
+                    {!signed && <button className="icon-btn" type="button" aria-label="Copy secure link" title="Copy secure link" onClick={() => copy(s)}><Icon name="link" size={16} /></button>}
+                    {!signed && data.sms.linkSms && <button className="icon-btn" type="button" aria-label="Send link by SMS" title="Send link by SMS" onClick={() => sms([s.id])} disabled={sending}><Icon name="sms" size={16} /></button>}
+                    {!signed && <button className="icon-btn" type="button" aria-label="Send link on WhatsApp" title="Send link on WhatsApp" onClick={() => whatsapp(s)}><Icon name="whatsapp" size={16} /></button>}
+                    {signed && <a className="icon-btn" aria-label="Download signed PDF" title="Download signed PDF" href={`/api/admin/signatories/${s.id}/file?kind=signed`}><Icon name="download" size={16} /></a>}
+                    <button className="icon-btn" type="button" aria-label="Open details" title="Open details" onClick={() => setSel(s.id)} style={{ background: "#142844", color: "#fff", borderColor: "#142844" }}><Icon name="next" size={16} /></button>
                   </span>
                 </div>
               );
             })}
-            {rows.length === 0 && <div style={{ padding: "40px 20px", textAlign: "center", color: "#637383" }}>{data.signatories.length ? "No centres match." : "No signatories yet."}</div>}
+            {rows.length === 0 && <div style={{ padding: "36px 20px", textAlign: "center", color: "#637383" }}>{data.signatories.length ? "No signatories match." : "No signatories yet."}</div>}
           </div>
         </div>
-        <div className="mono" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", borderTop: "1px solid #E6ECEC", fontSize: 11.5, color: "#637383" }}>
-          <span>Showing {shown.length} of {rows.length}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button className="icon-btn" type="button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage(page - 1)}><Icon name="back" size={15} /></button>
-            Page {page + 1} of {pages}
-            <button className="icon-btn" type="button" aria-label="Next page" disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}><Icon name="next" size={15} /></button>
-          </span>
-        </div>
+        {rows.length > PAGE && (
+          <div className="mono" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 18px", borderTop: "1px solid #E6ECEC", fontSize: 11.5, color: "#637383" }}>
+            <span>Showing {shown.length} of {rows.length}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button className="icon-btn" type="button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage(page - 1)}><Icon name="back" size={15} /></button>
+              Page {page + 1} of {pages}
+              <button className="icon-btn" type="button" aria-label="Next page" disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}><Icon name="next" size={15} /></button>
+            </span>
+          </div>
+        )}
       </section>
 
       {sel && <SignatoryDrawer id={sel} smsReady={data.sms.linkSms} onClose={() => setSel(null)} onChanged={load} say={say} />}
@@ -271,8 +301,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   );
 }
 
-const COLS = "78px minmax(220px, 2fr) minmax(170px, 1.2fr) 110px 190px 160px 210px";
+const COLS = "minmax(170px, 1.3fr) minmax(220px, 2fr) 112px 150px 168px";
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 function AddSignatory({ projectId, onClose, onAdded }: { projectId: string; onClose: () => void; onAdded: () => void }) {
   const [f, setF] = useState({ name: "", mobile: "", centreCode: "", centreName: "" });

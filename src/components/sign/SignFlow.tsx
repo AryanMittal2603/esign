@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
-import { Brand, ErrorBox, Icon, Kicker, OtpInput, Seal, Spinner, Words, api } from "@/components/ui";
+import { Brand, ErrorBox, Icon, Keypad, Kicker, OtpInput, Seal, Spinner, Words, api } from "@/components/ui";
 import { FaceCamera, getPosition, type CameraHandle, type FaceState, type Geo } from "./FaceCamera";
 import { PdfPreview } from "./PdfPreview";
 import { toJpeg, uploadToBlob, uploadWithProgress } from "./media";
@@ -158,6 +158,7 @@ export function SignFlow({ token }: { token: string }) {
           </div>
           <ErrorBox>{err}</ErrorBox>
           <div style={{ flex: 1 }} />
+          <Keypad value={code} onChange={setCode} max={6} disabled={busy} />
           <button className="btn btn-ink up" type="button" style={{ animationDelay: "1.2s", width: "100%", minHeight: 54 }} disabled={code.length < 6 || busy} onClick={verifyAccess}>
             {busy ? <Spinner /> : null} Verify &amp; continue
           </button>
@@ -335,7 +336,10 @@ function UploadStep({ token, data, onDone }: { token: string; data: Data; onDone
         ))}
         {count > 0 && (
           <div style={{ position: "absolute", left: 12, right: 12, bottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 20 }}>
-            <span className="chip pop" style={{ background: "#E3F0EC", color: "#2E7567" }}>{count} {count === 1 ? "item" : "items"}</span>
+            <span className="chip pop" style={{ background: "#E3F0EC", color: "#2E7567" }}>{count} {pending.some((x) => x.type === "application/pdf") ? (count === 1 ? "file" : "files") : count === 1 ? "page" : "pages"}</span>
+            <button className="btn btn-ink btn-sm pop" type="button" onClick={() => camInput.current?.click()} style={{ animationDelay: ".15s", minHeight: 36, padding: "0 14px", borderRadius: 999 }}>
+              <Icon name="plus" size={16} stroke={2.2} /> Add page
+            </button>
             <button className="link" type="button" style={{ fontSize: 13 }} onClick={() => setPending([])}>Start over</button>
           </div>
         )}
@@ -577,13 +581,13 @@ function SignOtpStep({ token, data, resendIn, onResent, onSigned }: { token: str
       <div className="up" style={{ animationDelay: "1.05s" }}>
         {resendIn > 0 ? <span className="mono" style={{ fontSize: 12, color: "#637383" }}>Resend in 0:{String(resendIn).padStart(2, "0")}</span> : <button className="link" type="button" onClick={resend}>Send a new code</button>}
       </div>
-      <div className="up" style={{ animationDelay: "1.15s", borderRadius: 16, background: "#fff", border: "1px solid #D4DEE0", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 6 }}>
-        <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".1em", textTransform: "uppercase", color: "#637383" }}>You are signing</span>
-        <span style={{ fontWeight: 700, fontSize: 15 }}>CSR · Centre {data.centreCode} · {pages} {pages === 1 ? "page" : "pages"}</span>
-        <span style={{ fontSize: 13, color: "#637383" }}>Signature block on every page, plus a certificate page with your photo and OTP record.</span>
+      <div className="up" style={{ animationDelay: "1.15s", borderRadius: 14, background: "#fff", border: "1px solid #D4DEE0", padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+        <Icon name="pen" size={16} color="#2E7567" />
+        <span style={{ fontSize: 13.5 }}><b>CSR · Centre {data.centreCode} · {pages} {pages === 1 ? "page" : "pages"}</b><span style={{ color: "#637383" }}> + certificate</span></span>
       </div>
       <ErrorBox>{err}</ErrorBox>
       <div style={{ flex: 1 }} />
+      <Keypad value={code} onChange={setCode} max={6} disabled={busy} />
       <button className="btn btn-green up" type="button" style={{ animationDelay: "1.25s", width: "100%", minHeight: 54 }} disabled={code.length < 6 || busy} onClick={sign}>
         {busy ? <><Spinner /> Signing…</> : <><Icon name="pen" /> Sign document</>}
       </button>

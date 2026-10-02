@@ -12,25 +12,50 @@ export function Ring({ pct, size = 64 }: { pct: number; size?: number }) {
         <circle cx="42" cy="42" r="34" stroke="#E6ECEC" strokeWidth="10" />
         <circle cx="42" cy="42" r="34" stroke="#2E7567" strokeWidth="10" strokeLinecap="round" pathLength={100} strokeDasharray={`${pct.toFixed(1)} 100`} />
       </svg>
-      <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontWeight: 800, fontSize: size * 0.23 }}>{Math.round(pct)}%</span>
+      <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontWeight: 800, fontSize: size * 0.24 }}>{Math.round(pct)}%</span>
     </div>
   );
 }
 
+const label: React.CSSProperties = { fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", color: "#637383" };
+
 export function ExamCard({ exam, k = 1, delay = 0 }: { exam: Exam; k?: number; delay?: number }) {
-  const pct = exam.stats.total ? (exam.stats.signed / exam.stats.total) * 100 : 0;
+  const { stats } = exam;
+  const pct = stats.total ? (stats.signed / stats.total) * 100 : 0;
+  const fields = ([["Exam", exam.examName], ["Date", exam.examDate], ["Shift", exam.shift]] as const).filter(([, v]) => v);
+  const seg = (n: number) => `${stats.total ? (n / stats.total) * 100 : 0}%`;
+
   return (
-    <Link href={`/admin/exams/${exam.id}`} className="card lift up" style={{ animationDelay: `${delay}s`, padding: 22, display: "flex", flexDirection: "column", gap: 16, textDecoration: "none", color: "inherit" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "flex-start" }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em" }}>{exam.name}</div>
-          <div className="mono" style={{ fontSize: 12, color: "#637383", marginTop: 6 }}>{[exam.examName, exam.examDate, exam.shift].filter(Boolean).join(" · ") || "—"}</div>
+    <Link href={`/admin/exams/${exam.id}`} className="card lift up" style={{ animationDelay: `${delay}s`, padding: 0, display: "flex", flexDirection: "column", textDecoration: "none", color: "inherit", overflow: "hidden" }}>
+      <div style={{ padding: "20px 22px 16px", display: "flex", gap: 16, alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.15, overflowWrap: "anywhere" }}>{exam.name}</div>
+          {fields.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 18px" }}>
+              {fields.map(([k2, v]) => (
+                <div key={k2} style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+                  <span style={label}>{k2}</span>
+                  <span style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap" }}>{v}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <Ring pct={pct * k} />
+        <Ring pct={pct * k} size={58} />
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
-        {([["Centres", exam.stats.total, "#142844"], ["Opened", exam.stats.opened, "#2557DA"], ["Uploaded", exam.stats.uploaded, "#7E5B12"], ["Signed", exam.stats.signed, "#2E7567"]] as const).map(([l, v, c]) => (
-          <div key={l}><div className="mono" style={{ fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", color: "#637383" }}>{l}</div><div style={{ fontSize: 20, fontWeight: 800, color: c, marginTop: 4 }}>{v}</div></div>
+
+      <div style={{ height: 6, display: "flex", background: "#EEF2F1", margin: "0 22px", borderRadius: 3, overflow: "hidden" }} aria-hidden="true">
+        <span style={{ width: seg(stats.signed), background: "#2E7567" }} />
+        <span style={{ width: seg(stats.uploaded - stats.signed), background: "#C9962B" }} />
+        <span style={{ width: seg(stats.opened - stats.uploaded), background: "#2557DA" }} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", padding: "14px 22px 18px", gap: 8 }}>
+        {([["Signatories", stats.total, "#142844"], ["Opened", stats.opened, "#2557DA"], ["Uploaded", stats.uploaded, "#7E5B12"], ["Signed", stats.signed, "#2E7567"]] as const).map(([l, v, c]) => (
+          <div key={l} style={{ minWidth: 0 }}>
+            <div style={{ ...label, fontSize: 9.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: c, marginTop: 4 }}>{v}</div>
+          </div>
         ))}
       </div>
     </Link>

@@ -124,7 +124,7 @@ export function OtpInput({ value, onChange, autoFocus, label = "6-digit code" }:
       })}
       <input
         className="otp-input"
-        inputMode="numeric"
+        inputMode="none"
         autoComplete="one-time-code"
         maxLength={6}
         autoFocus={autoFocus}
@@ -191,5 +191,32 @@ export function Silhouette({ size = 38 }: { size?: number }) {
       <circle cx="19" cy="15" r="7" fill="#8FB3CF" />
       <path d="M5 38c1-9 7-13 14-13s13 4 14 13z" fill="#8FB3CF" />
     </svg>
+  );
+}
+
+/* ── on-screen number keypad (replaces the phone's own keyboard) ── */
+export function Keypad({ value, onChange, max, disabled }: { value: string; onChange: (v: string) => void; max: number; disabled?: boolean }) {
+  const press = (next: string) => {
+    if (disabled) return;
+    try { navigator.vibrate?.(8); } catch { /* not supported */ }
+    onChange(next);
+  };
+  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"];
+  return (
+    <div className="keypad up" role="group" aria-label="Number keypad" style={{ animationDelay: ".9s" }}>
+      {keys.map((k) => {
+        if (k === "clear") {
+          return <button key={k} type="button" className="key key-soft" onClick={() => press("")} disabled={disabled || !value} aria-label="Clear">Clear</button>;
+        }
+        if (k === "back") {
+          return (
+            <button key={k} type="button" className="key key-soft" onClick={() => press(value.slice(0, -1))} disabled={disabled || !value} aria-label="Delete last digit">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 5h11v14H9l-6-7z" /><path d="M12.5 9.5l5 5M17.5 9.5l-5 5" /></svg>
+            </button>
+          );
+        }
+        return <button key={k} type="button" className="key" onClick={() => value.length < max && press(value + k)} disabled={disabled}>{k}</button>;
+      })}
+    </div>
   );
 }
