@@ -1,0 +1,33 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-02T20:30:00Z" },
+  "title": "SeqreSign Design",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1280, "h": 1040, "title": "Design language", "is_interactive": true },
+    "SignedCSR.dc.html": { "x": 1360, "y": 0, "w": 1760, "h": 1270, "title": "Signed CSR — stamped page + certificate" },
+    "AdminLogin.dc.html": { "x": 0, "y": 1690, "w": 1440, "h": 900, "title": "Admin — Sign in", "expand": "fill", "is_interactive": true },
+    "Dashboard.dc.html": { "x": 1520, "y": 1690, "w": 1440, "h": 1900, "title": "Admin — Project live tracker", "expand": "fill", "is_interactive": true },
+    "ImportCSV.dc.html": { "x": 3040, "y": 1690, "w": 1440, "h": 1500, "title": "Admin — Bulk import", "expand": "fill", "is_interactive": true },
+    "SignFlow.dc.html": { "x": 0, "y": 4010, "w": 390, "h": 844, "title": "Signatory — play the full flow", "is_interactive": true },
+    "DirectAccess.dc.html": { "x": 470, "y": 4010, "w": 390, "h": 844, "title": "Signatory — no link (mobile + OTP gate)", "is_interactive": true },
+    "MobileSteps.dc.html": { "x": 940, "y": 4010, "w": 4022, "h": 1010, "title": "Signatory — every step", "is_interactive": true }
+  },
+  "order": [
+    "Main.dc.html",
+    "SignedCSR.dc.html",
+    "AdminLogin.dc.html",
+    "Dashboard.dc.html",
+    "ImportCSV.dc.html",
+    "SignFlow.dc.html",
+    "DirectAccess.dc.html",
+    "MobileSteps.dc.html"
+  ],
+  "notes": {
+    "foundations": { "x": 0, "y": -300, "text": "Foundations", "kind": "title1", "maxW": 3120 },
+    "admin": { "x": 0, "y": 1390, "text": "Admin dashboard · desktop", "kind": "title1", "maxW": 4480 },
+    "signatory": { "x": 0, "y": 3710, "text": "Signatory web app · mobile", "kind": "title1", "maxW": 4962 }
+  },
+  "designSystems": []
+}

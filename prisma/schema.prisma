@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Project {
+  id          String       @id @default(cuid())
+  name        String
+  examName    String?
+  examDate    String?
+  shift       String?
+  description String?
+  createdAt   DateTime     @default(now())
+  signatories Signatory[]
+  auditLogs   AuditLog[]
+}
+
+enum SignatoryStatus {
+  IMPORTED
+  SENT
+  OPENED
+  VERIFIED
+  UPLOADED
+  SIGNED
+}
+
+model Signatory {
+  id         String          @id @default(cuid())
+  projectId  String
+  project    Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name       String
+  mobile     String
+  centreCode String
+  centreName String
+  token      String          @unique
+  status     SignatoryStatus @default(IMPORTED)
+
+  linkSentAt DateTime?
+  linkSentVia String?
+  openedAt   DateTime?
+  verifiedAt DateTime?
+
+  // draft (before signing; replaceable)
+  draftKey   String?
+  draftPages Int?
+  draftSize  Int?
+  draftHash  String?
+  uploadedAt DateTime?
+
+  // live photo
+  photoKey     String?
+  photoAt      DateTime?
+  faceCheck    String? // "passed" | "unavailable"
+  geoLat       Float?
+  geoLng       Float?
+  geoAccuracy  Float?
+
+  consentAt  DateTime?
+
+  // signature (immutable once set)
+  signedAt     DateTime?
+  signedKey    String?
+  signedHash   String?
+  documentId   String?   @unique
+  otpRef       String?
+  otpSentAt    DateTime?
+  otpVerifiedAt DateTime?
+  signIp       String?
+  signUserAgent String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  auditLogs AuditLog[]
+
+  @@unique([projectId, mobile])
+  @@unique([projectId, centreCode])
+  @@index([mobile])
+}
+
+enum OtpPurpose {
+  ACCESS
+  SIGN
+}
+
+model Otp {
+  id          String     @id @default(cuid())
+  mobile      String
+  purpose     OtpPurpose
+  signatoryId String?
+  codeHash    String
+  ref         String
+  attempts    Int        @default(0)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime   @default(now())
+
+  @@index([mobile, purpose])
+}
+
+model AuditLog {
+  id          String     @id @default(cuid())
+  projectId   String?
+  project     Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  signatoryId String?
+  signatory   Signatory? @relation(fields: [signatoryId], references: [id], onDelete: Cascade)
+  actor       String // ADMIN | SIGNATORY | SYSTEM
+  action      String
+  details     Json?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime   @default(now())
+
+  @@index([projectId, createdAt])
+  @@index([signatoryId, createdAt])
+}

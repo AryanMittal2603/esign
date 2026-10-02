@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SeqreSign design language</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="seqre.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2557DA}a:hover{color:#142844}
+</style>
+</helmet>
+<div class="stage" style="width: 1280px; height: 1040px; box-sizing: border-box; padding: 56px 64px; display: flex; flex-direction: column; gap: 36px; font-family: Archivo, 'Helvetica Neue', sans-serif; color: #142844">
+<sc-if value="{{ on }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 36px">
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 32px">
+    <div style="display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="13" stroke="#142844" stroke-width="2" pathLength="1" class="draw"></circle>
+          <path d="M10 16.8l4.2 4.2 7.8-9" stroke="#B76A3B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="draw" style="animation-delay: .7s"></path>
+        </svg>
+        <span class="fade" style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em">Seqre<span style="color: #B76A3B">Sign</span></span>
+      </div>
+      <div class="kicker" style="animation-delay: .2s">Design language · CSR eSign platform</div>
+      <h1 style="margin: 0; font-size: 64px; line-height: .96; font-weight: 800; letter-spacing: -0.035em; max-width: 900px">
+        <span class="w" style="animation-delay: .35s">Calm</span> <span class="w" style="animation-delay: .43s">paper.</span> <span class="w" style="animation-delay: .51s">Clear</span> <span class="w" style="animation-delay: .59s">ink.</span><br>
+        <span class="w" style="animation-delay: .75s">Motion</span> <span class="w" style="animation-delay: .83s">that</span> <span class="w" style="animation-delay: .91s; color: #B76A3B">explains.</span>
+      </h1>
+      <p class="up" style="animation-delay: 1.2s; margin: 0; max-width: 640px; font-size: 16px; line-height: 1.55; color: #637383">The exam-office palette from the UPESSC decks, made friendly for a two-minute signing job on a phone. Every animation tells you what just happened. None is there only to decorate.</p>
+    </div>
+    <button class="btn btn-line" type="button" onClick="{{ replay }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+      Replay motion
+    </button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 12px">
+    <sc-for list="{{ swatches }}" as="s" hint-placeholder-count="9">
+      <div class="up" style="animation-delay: {{ s.d }}s; display: flex; flex-direction: column; gap: 8px">
+        <div style="height: 72px; border-radius: 14px; background: {{ s.hex }}; border: 1px solid #14284414"></div>
+        <div style="font-size: 13px; font-weight: 700">{{ s.name }}</div>
+        <div class="mono" style="font-size: 11px; color: #637383; line-height: 1.4">{{ s.hex }}<br>{{ s.role }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 20px">
+    <div class="card up" style="animation-delay: .9s; padding: 24px 28px; display: flex; gap: 28px; align-items: center">
+      <div style="font-size: 120px; font-weight: 800; letter-spacing: -0.05em; line-height: .8">Aa</div>
+      <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+        <div style="font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1">Archivo 800 · titles</div>
+        <div style="font-size: 15px; line-height: 1.5; color: #142844">Archivo 400–600 · body and buttons, for reading at a glance.</div>
+        <div class="kicker" style="animation-delay: 1.1s">IBM Plex Mono · labels, IDs, time</div>
+        <div class="mono" style="font-size: 13px; color: #637383">SQ-1042-7F3A · 12 Oct 2026 · 14:32:10 IST</div>
+      </div>
+    </div>
+    <div class="card up" style="animation-delay: 1s; padding: 24px 28px; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <button class="btn btn-ink" type="button">Send OTP</button>
+        <button class="btn btn-green" type="button">Sign document</button>
+        <button class="btn btn-line" type="button">Replace</button>
+        <button class="btn btn-ghost" type="button">Cancel</button>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <span class="chip" style="background: #EEF1F0; color: #56636F">Not sent</span>
+        <span class="chip" style="background: #DCECF2; color: #142844">Link sent</span>
+        <span class="chip" style="background: #E4EBFB; color: #2557DA">Opened</span>
+        <span class="chip" style="background: #F7EDD5; color: #7E5B12">Uploaded</span>
+        <span class="chip" style="background: #E3F0EC; color: #2E7567">Signed</span>
+      </div>
+      <div style="display: flex; gap: 16px; align-items: flex-end">
+        <label style="flex: 1; min-width: 0"><span class="label">Registered mobile</span><input class="field" value="+91 98765 43480" aria-label="Registered mobile"></label>
+        <div style="display: flex; gap: 6px" aria-hidden="true">
+          <div class="otp">4</div><div class="otp">8</div><div class="otp" style="border-color: #142844; box-shadow: 0 0 0 4px #DCECF2"><span class="blink" style="width: 2px; height: 26px; background: #142844"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px">
+
+    <div class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px; height: 196px; box-sizing: border-box">
+      <div style="flex: 1; display: grid; place-items: center; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; text-align: center">
+        <div><span class="w" style="animation-delay: 1.3s">Every</span> <span class="w" style="animation-delay: 1.4s">report,</span> <span class="w" style="animation-delay: 1.5s; color: #2E7567">signed.</span></div>
+      </div>
+      <div class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #9A5530">Word rise</div>
+      <div style="font-size: 12.5px; line-height: 1.4; color: #637383">Headlines arrive word by word.</div>
+    </div>
+
+    <div class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px; height: 196px; box-sizing: border-box">
+      <div style="flex: 1; display: grid; place-items: center">
+        <svg width="76" height="76" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+          <circle cx="40" cy="40" r="33" stroke="#2E7567" stroke-width="3" pathLength="1" class="draw" style="animation-delay: 1.3s"></circle>
+          <circle cx="40" cy="40" r="26" fill="#E3F0EC" class="pop" style="animation-delay: 2.1s"></circle>
+          <path d="M28 41l8 8 16-18" stroke="#2E7567" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="draw" style="animation-delay: 2.2s"></path>
+        </svg>
+      </div>
+      <div class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #9A5530">Stroke draw</div>
+      <div style="font-size: 12.5px; line-height: 1.4; color: #637383">Seals and lines draw before they fill.</div>
+    </div>
+
+    <div class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px; height: 196px; box-sizing: border-box">
+      <div style="position: relative; flex: 1; border-radius: 12px; overflow: hidden; background: #DCECF2; display: grid; place-items: center">
+        <div style="font-size: 15px; font-weight: 800">Step 4 · Photo</div>
+        <div class="curtain" style="animation-delay: 1.5s; animation-duration: 1.1s"></div>
+      </div>
+      <div class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #9A5530">Curtain</div>
+      <div style="font-size: 12.5px; line-height: 1.4; color: #637383">A paper sheet turns each step.</div>
+    </div>
+
+    <div class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px; height: 196px; box-sizing: border-box">
+      <div style="flex: 1; display: grid; place-items: center">
+        <span class="chip pop" style="animation-delay: 1.6s; height: 32px; padding: 0 14px; font-size: 12px; background: #E3F0EC; color: #2E7567">Face detected</span>
+      </div>
+      <div class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #9A5530">Spring pop</div>
+      <div style="font-size: 12.5px; line-height: 1.4; color: #637383">Confirmations land with a spring.</div>
+    </div>
+
+    <div class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px; height: 196px; box-sizing: border-box">
+      <div style="flex: 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; align-content: center">
+        <sc-for list="{{ mini }}" as="t" hint-placeholder-count="32">
+          <div class="tile" style="animation-delay: {{ t.d }}s">
+            <div class="{{ t.dim }}" style="width: 100%; height: 100%; border-radius: 3px; background: {{ t.bg }}"></div>
+          </div>
+        </sc-for>
+      </div>
+      <div class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #9A5530">Focus dim</div>
+      <div style="font-size: 12.5px; line-height: 1.4; color: #637383">Pick a status; the rest step back.</div>
+    </div>
+
+    <div class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px; height: 196px; box-sizing: border-box">
+      <div style="flex: 1; display: grid; place-items: center">
+        <div class="sheen pop" style="animation-delay: 1.3s; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 999px; background: #2E7567; color: #FFFFFF; font-weight: 700; font-size: 15px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+          Signed
+        </div>
+      </div>
+      <div class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #9A5530">Sheen</div>
+      <div style="font-size: 12.5px; line-height: 1.4; color: #637383">One light sweep marks completion.</div>
+    </div>
+
+  </div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1040}}'>
+class Component extends DCLogic {
+  state = { on: true };
+  componentWillUnmount() { clearTimeout(this.t); }
+  renderVals() {
+    const sw = [
+      ['Paper', '#F3F6F4', 'Ground'],
+      ['Sky', '#DCECF2', 'Focus, links sent'],
+      ['Ink', '#142844', 'Text, primary'],
+      ['Quiet', '#637383', 'Secondary text'],
+      ['Line', '#A8BBC2', 'Borders'],
+      ['Copper', '#B76A3B', 'Kickers, current'],
+      ['Green', '#2E7567', 'Signed, success'],
+      ['Amber', '#C9962B', 'Uploaded, waiting'],
+      ['Blue', '#2557DA', 'Opened, links']
+    ];
+    const greens = [1, 2, 5, 9, 10, 12, 17, 20, 22, 27, 30];
+    const mini = Array.from({ length: 32 }, (_, i) => {
+      const c = i % 8, r = Math.floor(i / 8);
+      const g = greens.indexOf(i) >= 0;
+      return { d: (1.2 + (c + r * 0.7) * 0.05).toFixed(2), bg: g ? '#2E7567' : (i % 3 ? '#A8BBC2' : '#C9962B'), dim: g ? '' : 'dim-late' };
+    });
+    return {
+      on: this.state.on,
+      swatches: sw.map((s, i) => ({ name: s[0], hex: s[1], role: s[2], d: (0.7 + i * 0.05).toFixed(2) })),
+      mini,
+      replay: () => {
+        this.setState({ on: false });
+        clearTimeout(this.t);
+        this.t = setTimeout(() => this.setState({ on: true }), 40);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

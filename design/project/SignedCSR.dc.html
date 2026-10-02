@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Signed CSR output</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="seqre.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1760px; height: 1270px; box-sizing: border-box; padding: 40px 48px 48px; background: #E9EEEC; font-family: Archivo, 'Helvetica Neue', sans-serif; color: #142844; display: flex; gap: 64px">
+
+  <!-- ═════════ page 1 · scanned CSR + signature block ═════════ -->
+  <div style="flex: none; width: 800px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: baseline; gap: 12px"><span class="mono" style="font-size: 13px; font-weight: 600; color: #9A5530">PAGE 1 OF 3</span><span style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em">Signature block on every page</span></div>
+    <div class="up" style="width: 800px; height: 1132px; background: #FFFFFF; box-shadow: 0 30px 60px -30px #14284466; display: flex; flex-direction: column">
+      <div style="flex: 1; background: #FBFAF6; padding: 56px 64px; display: flex; flex-direction: column; gap: 22px; transform: rotate(-0.35deg); filter: contrast(.96)">
+        <div style="text-align: center; display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 13px; font-weight: 700; letter-spacing: .08em; color: #3C4450">[EXAMINING AUTHORITY NAME]</span>
+          <span style="font-size: 26px; font-weight: 800; letter-spacing: .02em; color: #2E343C">SATISFACTORY REPORT (CSR)</span>
+          <span style="font-size: 13px; color: #5B6470">To be filled by the Centre Superintendent after the examination</span>
+        </div>
+        <div style="height: 2px; background: #2E343C"></div>
+        <div style="display: grid; grid-template-columns: 240px minmax(0, 1fr); border: 1px solid #8B939C; font-size: 15px">
+          <sc-for list="{{ fields }}" as="f" hint-placeholder-count="10">
+            <div style="padding: 11px 14px; border-bottom: 1px solid #C3C9CF; border-right: 1px solid #C3C9CF; color: #3C4450; font-weight: 600">{{ f.k }}</div>
+            <div style="padding: 11px 14px; border-bottom: 1px solid #C3C9CF; color: #24358C; font-style: italic; font-weight: 500; font-size: 16px">{{ f.v }}</div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-weight: 600; color: #3C4450; font-size: 15px">Remarks</span>
+          <div style="min-height: 70px; border: 1px solid #C3C9CF; padding: 12px 14px; color: #24358C; font-style: italic; font-size: 16px; line-height: 1.6">Examination conducted smoothly in both rooms. Question paper packets received sealed. No unfair means case reported.</div>
+        </div>
+        <div style="flex: 1"></div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end">
+          <div style="width: 150px; height: 150px; border-radius: 50%; border: 3px solid #6A4C93; opacity: .7; display: grid; place-items: center; text-align: center; color: #6A4C93; font-size: 12px; font-weight: 700; letter-spacing: .06em; transform: rotate(-12deg)">CENTRE<br>1042<br>LUCKNOW</div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+            <svg width="200" height="60" viewBox="0 0 200 60" fill="none" aria-hidden="true"><path d="M8 40c14-26 24-30 26-14s-6 22 6 4 18-22 20-8-4 18 10 4 16-10 22-2 4 10 16-2 20-12 30-6 18 10 46-4" stroke="#24358C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="draw" style="animation-delay: .6s; animation-duration: 1.8s"></path></svg>
+            <span style="width: 220px; height: 1px; background: #2E343C"></span>
+            <span style="font-size: 13px; color: #3C4450; font-weight: 600">Signature of Centre Superintendent</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 150px; flex: none; box-sizing: border-box; border-top: 1.5px dashed #A8BBC2; background: #F3F6F4; padding: 18px 28px; display: flex; align-items: center; gap: 20px">
+        <span style="width: 74px; height: 92px; border-radius: 10px; background: #2A4A78; overflow: hidden; display: grid; place-items: end center; flex: none; box-shadow: 0 0 0 2px #2E7567"><svg width="74" height="78" viewBox="0 0 38 40" aria-hidden="true"><circle cx="19" cy="15" r="7" fill="#8FB3CF"></circle><path d="M5 40c1-9 7-13 14-13s13 4 14 13z" fill="#8FB3CF"></path></svg></span>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 17px; font-weight: 800; letter-spacing: -0.01em">Digitally signed by Ramesh Kumar Verma</span>
+          <span class="mono" style="font-size: 12px; color: #3E5266">Centre 1042 · UPESSC TGT Exam 2026 · Shift 1</span>
+          <span class="mono" style="font-size: 12px; color: #3E5266">12 Oct 2026 · 14:32:10 IST · OTP ref 7F3A-2C91</span>
+          <span class="mono" style="font-size: 12px; color: #3E5266">26.8467° N, 80.9462° E · Face + mobile OTP</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex: none">
+          <svg width="64" height="64" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+            <circle cx="40" cy="40" r="34" stroke="#2E7567" stroke-width="3" pathLength="1" class="draw" style="animation-delay: 1s"></circle>
+            <circle cx="40" cy="40" r="26" fill="#2E7567" class="pop" style="animation-delay: 1.8s; transform-box: fill-box; transform-origin: center"></circle>
+            <path d="M28 41l8 8 16-18" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="draw" style="animation-delay: 2s"></path>
+          </svg>
+          <span class="mono" style="font-size: 11px; font-weight: 600">SQ-1042-7F3A</span>
+          <span class="mono" style="font-size: 10.5px; color: #637383">Page 1 of 3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════ certificate page ═════════ -->
+  <div style="flex: none; width: 800px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: baseline; gap: 12px"><span class="mono" style="font-size: 13px; font-weight: 600; color: #9A5530">APPENDED PAGE</span><span style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em">eSign certificate · photo and OTP signature</span></div>
+    <div class="up stage" style="animation-delay: .2s; width: 800px; height: 1132px; box-sizing: border-box; box-shadow: 0 30px 60px -30px #14284466; padding: 56px 60px; display: flex; flex-direction: column; gap: 26px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13" stroke="#142844" stroke-width="2.2"></circle><path d="M10 16.8l4.2 4.2 7.8-9" stroke="#B76A3B" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em">Seqre<span style="color: #B76A3B">Sign</span></span>
+        </div>
+        <span class="mono" style="font-size: 12px; color: #637383">Document ID · SQ-1042-7F3A</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div class="kicker" style="animation-delay: .4s">Certificate of electronic signature</div>
+        <h2 style="margin: 0; font-size: 52px; line-height: .95; font-weight: 800; letter-spacing: -0.045em"><span class="w" style="animation-delay: .5s">Signed</span> <span class="w" style="animation-delay: .58s">with</span> <span class="w" style="animation-delay: .66s">face</span> <span class="w" style="animation-delay: .74s; color: #B76A3B">+</span> <span class="w" style="animation-delay: .82s; color: #2E7567">mobile OTP.</span></h2>
+      </div>
+
+      <div style="display: flex; gap: 28px">
+        <div style="flex: none; display: flex; flex-direction: column; gap: 10px">
+          <span class="pop" style="animation-delay: 1s; width: 200px; height: 244px; border-radius: 18px; background: #2A4A78; overflow: hidden; display: grid; place-items: end center; box-shadow: 0 0 0 4px #2E7567"><svg width="200" height="210" viewBox="0 0 38 40" aria-hidden="true"><circle cx="19" cy="15" r="7" fill="#8FB3CF"></circle><path d="M5 40c1-9 7-13 14-13s13 4 14 13z" fill="#8FB3CF"></path></svg></span>
+          <span class="mono" style="font-size: 11px; color: #637383; text-align: center">Photo signature · 14:31:40</span>
+        </div>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <sc-for list="{{ facts }}" as="f" hint-placeholder-count="8">
+            <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 14px; padding: 10px 0; border-bottom: 1px solid #D4DEE0">
+              <span class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #637383; padding-top: 2px">{{ f.k }}</span>
+              <span style="font-size: 14px; font-weight: 600; line-height: 1.4">{{ f.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="border-radius: 18px; background: #FFFFFF; border: 1px solid #D4DEE0; padding: 18px 22px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px">
+        <div style="display: flex; flex-direction: column; gap: 6px"><span class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #637383">OTP sent</span><span class="mono" style="font-size: 14px; font-weight: 600">14:31:52 IST</span><span style="font-size: 12.5px; color: #637383">to +91 98•••••480</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px"><span class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #637383">OTP verified</span><span class="mono" style="font-size: 14px; font-weight: 600">14:32:08 IST</span><span style="font-size: 12.5px; color: #637383">1st attempt</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px"><span class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #637383">OTP reference</span><span class="mono" style="font-size: 14px; font-weight: 600; color: #2E7567">7F3A-2C91</span><span style="font-size: 12.5px; color: #637383">acts as signature</span></div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span class="mono" style="font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: #637383">Audit trail</span>
+        <sc-for list="{{ trail }}" as="t" hint-placeholder-count="7">
+          <div style="display: grid; grid-template-columns: 90px 14px minmax(0, 1fr); gap: 12px; align-items: center; font-size: 13.5px">
+            <span class="mono" style="font-size: 12px; color: #637383">{{ t.at }}</span>
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #2E7567"></span>
+            <span>{{ t.what }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="flex: 1"></div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 20px">
+        <div class="mono" style="font-size: 10.5px; color: #637383; line-height: 1.6; max-width: 520px">Original document SHA-256<br><span style="color: #142844; font-weight: 600">9f2c4b17a0d38e5c61b2f4a9d07e3c58b1a64f2e09d7c3b58a1e6f40d2c9e81a</span><br>Generated by SeqreSign. This page is part of the signed document and cannot be removed without breaking the signature.</div>
+        <div class="sheen" style="flex: none; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 999px; background: #2E7567; color: #FFFFFF; font-weight: 700; font-size: 15px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+          eSigned
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1760,"height":1270}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const fields = [
+      ['Examination', 'TGT Exam 2026'],
+      ['Date and shift', '12 / 10 / 2026 · Shift 1'],
+      ['Centre code', '1042'],
+      ['Centre name', 'Govt. Inter College, Hazratganj, Lucknow'],
+      ['Candidates allotted', '312'],
+      ['Candidates present', '287'],
+      ['Candidates absent', '25'],
+      ['Unfair means cases', 'Nil'],
+      ['Answer sheets sealed', '287 in 6 packets'],
+      ['Observer present', 'Yes']
+    ].map(([k, v]) => ({ k, v }));
+    const facts = [
+      ['Signatory', 'Ramesh Kumar Verma'],
+      ['Registered mobile', '+91 98•••••480'],
+      ['Project', 'UPESSC TGT Exam 2026 · Shift 1'],
+      ['Centre', '1042 · Govt. Inter College, Hazratganj, Lucknow'],
+      ['Signed at', '12 Oct 2026 · 14:32:10 IST'],
+      ['Location', '26.8467° N, 80.9462° E · ±12 m'],
+      ['Device', 'Android 14 · Chrome 128 · IP 103.48.xx.xx'],
+      ['Face check', '1 face detected in live camera'],
+      ['Document', '3 pages · scanned and merged']
+    ].map(([k, v]) => ({ k, v }));
+    const trail = [
+      ['09:02:14', 'Secure link sent by SMS'],
+      ['13:48:31', 'Link opened on mobile'],
+      ['13:49:02', 'Mobile verified with OTP'],
+      ['13:55:47', 'CSR uploaded · 3 pages scanned'],
+      ['14:31:40', 'Live photo captured · location recorded'],
+      ['14:31:58', 'Declarations accepted'],
+      ['14:32:10', 'Signed with OTP · PDF sealed and stored encrypted']
+    ].map(([at, what]) => ({ at, what }));
+    return { fields, facts, trail };
+  }
+}
+</script>
+</body>
+</html>

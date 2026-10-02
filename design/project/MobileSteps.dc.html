@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Signatory app, every step</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="seqre.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 4022px; height: 1010px; box-sizing: border-box; padding: 56px 64px; background: #E9EEEC; font-family: Archivo, 'Helvetica Neue', sans-serif; color: #142844; display: flex; gap: 48px">
+  <sc-for list="{{ steps }}" as="s" hint-placeholder-count="9">
+    <div style="flex: none; width: 390px; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; align-items: baseline; gap: 12px">
+        <span class="mono" style="font-size: 13px; font-weight: 600; color: #9A5530">{{ s.no }}</span>
+        <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em">{{ s.title }}</span>
+      </div>
+      <div style="width: 390px; height: 844px; border-radius: 34px; overflow: hidden; box-shadow: 0 0 0 10px #142844, 0 40px 80px -30px #14284499">
+        <dc-import name="SignFlow" start-step="{{ s.step }}" hint-size="390px,844px"></dc-import>
+      </div>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":4022,"height":1010}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const t = ['Secure link', 'Verify mobile', 'Confirm details', 'Upload or scan CSR', 'Review document', 'Live photo + GPS', 'Consent', 'Sign with OTP', 'Signed'];
+    return { steps: t.map((title, i) => ({ step: i, title, no: String(i + 1).padStart(2, '0') })) };
+  }
+}
+</script>
+</body>
+</html>

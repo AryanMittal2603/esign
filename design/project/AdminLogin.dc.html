@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin sign in</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="seqre.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2557DA}a:hover{color:#142844}
+</style>
+</helmet>
+<div class="stage" style="min-height: 100vh; box-sizing: border-box; display: flex; flex-wrap: wrap; font-family: Archivo, 'Helvetica Neue', sans-serif; color: #142844">
+
+  <div style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: clamp(28px, 5vw, 72px); display: flex; flex-direction: column; gap: 28px">
+    <div class="fade" style="display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13" stroke="#142844" stroke-width="2" pathLength="1" class="draw"></circle><path d="M10 16.8l4.2 4.2 7.8-9" stroke="#B76A3B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="draw" style="animation-delay: .7s"></path></svg>
+      <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em">Seqre<span style="color: #B76A3B">Sign</span></span>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 22px; max-width: 760px">
+      <div class="kicker" style="animation-delay: .3s">CSR eSign · Examination centres</div>
+      <h1 style="margin: 0; font-size: clamp(44px, 6.4vw, 92px); line-height: .94; font-weight: 800; letter-spacing: -0.045em">
+        <span class="w" style="animation-delay: .45s">Every</span> <span class="w" style="animation-delay: .53s">centre.</span><br>
+        <span class="w" style="animation-delay: .65s">Every</span> <span class="w" style="animation-delay: .73s">report.</span><br>
+        <span class="w" style="animation-delay: .9s; color: #2E7567">Signed.</span>
+      </h1>
+      <p class="up" style="animation-delay: 1.2s; margin: 0; max-width: 520px; font-size: 17px; line-height: 1.55; color: #637383">Onboard signatories, send secure links, and watch each centre's Satisfactory Report get signed with face and OTP, live on exam day.</p>
+      <div class="up" style="animation-delay: 1.35s; display: flex; flex-direction: column; gap: 12px; max-width: 520px">
+        <div style="display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 4px">
+          <sc-for list="{{ wall }}" as="t" hint-placeholder-count="72">
+            <div class="tile" style="animation-delay: {{ t.d }}s">
+              <div class="{{ t.cls }}" style="width: 100%; height: 100%; border-radius: 3px; background: #CBD7DB; animation-delay: {{ t.g }}s"></div>
+            </div>
+          </sc-for>
+        </div>
+        <div class="mono fade" style="animation-delay: 2s; display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #637383">
+          <span class="live"></span> Centres signing in real time
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex: 1 1 400px; min-width: 0; box-sizing: border-box; padding: clamp(20px, 4vw, 56px); display: grid; place-items: center">
+    <div class="card up" style="animation-delay: .6s; width: min(100%, 420px); box-sizing: border-box; padding: 36px 32px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div class="kicker" style="animation-delay: .8s">Super Admin</div>
+        <h2 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.03em">Sign in</h2>
+      </div>
+      <label style="display: block"><span class="label">Email</span><input class="field" type="email" placeholder="you@examoffice.gov.in" aria-label="Email"></label>
+      <label style="display: block">
+        <span class="label">Password</span>
+        <span style="position: relative; display: block">
+          <input class="field" type="{{ pwType }}" placeholder="Your password" style="padding-right: 52px" aria-label="Password">
+          <button class="icon-btn" type="button" aria-label="{{ pwLabel }}" onClick="{{ togglePw }}" style="position: absolute; right: 8px; top: 8px; border: 0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+        </span>
+      </label>
+      <a class="btn btn-ink" href="Dashboard.dc.html" style="width: 100%; min-height: 52px">Sign in</a>
+      <div style="height: 1px; background: #E6ECEC"></div>
+      <div style="display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: #637383">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#142844" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><rect x="7" y="2" width="10" height="20" rx="2.5"></rect><path d="M11 18h2"></path></svg>
+        <span>Signing a CSR? Open the link from your SMS, or <a href="DirectAccess.dc.html">verify your mobile number</a>.</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  state = { showPw: false };
+  renderVals() {
+    const wall = Array.from({ length: 72 }, (_, i) => {
+      const c = i % 24, r = Math.floor(i / 24);
+      const signed = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1 < 0.68;
+      return {
+        d: (1.4 + (c + r * 0.7) * 0.025).toFixed(3),
+        g: (2.2 + (Math.abs(Math.sin(i * 3.7)) * 4)).toFixed(2),
+        cls: signed ? 'turn-green' : ''
+      };
+    });
+    return {
+      wall,
+      pwType: this.state.showPw ? 'text' : 'password',
+      pwLabel: this.state.showPw ? 'Hide password' : 'Show password',
+      togglePw: () => this.setState({ showPw: !this.state.showPw })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Signatory signing flow</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="seqre.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="stage" style="position: relative; width: 390px; height: 844px; overflow: hidden; font-family: Archivo, 'Helvetica Neue', sans-serif; color: #142844">
+
+<!-- ═════════ shared top bar (steps 1–7) ═════════ -->
+<sc-if value="{{ showBar }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 0; right: 0; top: 0; z-index: 30; padding: 18px 20px 0; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <button class="icon-btn" type="button" aria-label="Back" onClick="{{ back }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </button>
+      <div style="display: flex; align-items: center; gap: 7px">
+        <svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13" stroke="#142844" stroke-width="2.4"></circle><path d="M10 16.8l4.2 4.2 7.8-9" stroke="#B76A3B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <span style="font-size: 15px; font-weight: 800; letter-spacing: -0.02em">Seqre<span style="color: #B76A3B">Sign</span></span>
+      </div>
+      <span class="mono" style="font-size: 11px; letter-spacing: .08em; color: #637383; width: 34px; text-align: right">{{ stepNo }}/7</span>
+    </div>
+    <div style="display: flex; gap: 4px">
+      <sc-for list="{{ segs }}" as="g" hint-placeholder-count="7">
+        <div style="flex: 1; height: 4px; border-radius: 2px; background: {{ g.bg }}; transition: background-color .6s ease"></div>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+<!-- ═════════ 0 · secure link landing ═════════ -->
+<sc-if value="{{ s0 }}" hint-placeholder-val="{{ true }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 26px 24px 28px; display: flex; flex-direction: column">
+    <div class="curtain"></div>
+    <div class="fade" style="display: flex; align-items: center; gap: 8px">
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13" stroke="#142844" stroke-width="2.2" pathLength="1" class="draw"></circle><path d="M10 16.8l4.2 4.2 7.8-9" stroke="#B76A3B" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="draw" style="animation-delay: .6s"></path></svg>
+      <span style="font-size: 17px; font-weight: 800; letter-spacing: -0.02em">Seqre<span style="color: #B76A3B">Sign</span></span>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px">
+      <svg width="132" height="140" viewBox="0 0 132 140" fill="none" aria-hidden="true" style="margin-left: -18px">
+        <rect x="22" y="10" width="88" height="116" rx="9" fill="#FFFFFF" class="fade" style="animation-delay: .3s"></rect>
+        <rect x="22" y="10" width="88" height="116" rx="9" stroke="#142844" stroke-width="2" pathLength="1" class="draw" style="animation-delay: .3s"></rect>
+        <path d="M38 36h56" stroke="#A8BBC2" stroke-width="4" stroke-linecap="round" pathLength="1" class="draw" style="animation-delay: .8s"></path>
+        <path d="M38 52h42" stroke="#A8BBC2" stroke-width="4" stroke-linecap="round" pathLength="1" class="draw" style="animation-delay: .9s"></path>
+        <path d="M38 68h52" stroke="#A8BBC2" stroke-width="4" stroke-linecap="round" pathLength="1" class="draw" style="animation-delay: 1s"></path>
+        <path d="M38 84h28" stroke="#A8BBC2" stroke-width="4" stroke-linecap="round" pathLength="1" class="draw" style="animation-delay: 1.1s"></path>
+        <circle cx="100" cy="110" r="21" fill="#2E7567" class="pop" style="animation-delay: 1.4s; transform-box: fill-box; transform-origin: center"></circle>
+        <path d="M91 110.5l6 6 12-13" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="draw" style="animation-delay: 1.7s"></path>
+      </svg>
+      <div class="kicker" style="animation-delay: .4s">Secure link · Centre 1042</div>
+      <h1 style="margin: 0; font-size: 38px; line-height: 1; font-weight: 800; letter-spacing: -0.035em">
+        <span class="w" style="animation-delay: .5s">Your</span> <span class="w" style="animation-delay: .57s">centre</span> <span class="w" style="animation-delay: .64s">report</span> <span class="w" style="animation-delay: .71s">is</span> <span class="w" style="animation-delay: .78s">ready</span> <span class="w" style="animation-delay: .85s">to</span> <span class="w" style="animation-delay: .92s; color: #2E7567">sign.</span>
+      </h1>
+      <p class="up" style="animation-delay: 1.15s; margin: 0; font-size: 15px; line-height: 1.5; color: #637383">Upload your CSR, take a quick photo, and sign with a one-time code. It takes about two minutes.</p>
+      <div class="card up" style="animation-delay: 1.3s; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13px"><span class="mono" style="color: #637383; font-size: 11px; letter-spacing: .08em; text-transform: uppercase">Exam</span><span style="font-weight: 600; text-align: right">UPESSC TGT Exam 2026</span></div>
+        <div style="height: 1px; background: #E6ECEC"></div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13px"><span class="mono" style="color: #637383; font-size: 11px; letter-spacing: .08em; text-transform: uppercase">Shift</span><span style="font-weight: 600">12 Oct 2026 · Shift 1</span></div>
+        <div style="height: 1px; background: #E6ECEC"></div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13px"><span class="mono" style="color: #637383; font-size: 11px; letter-spacing: .08em; text-transform: uppercase">Mobile</span><span style="font-weight: 600">+91 98•••••480</span></div>
+      </div>
+    </div>
+    <button class="btn btn-ink up" type="button" style="animation-delay: 1.45s; width: 100%; min-height: 54px" onClick="{{ toOtp }}">Send OTP</button>
+    <div class="mono fade" style="animation-delay: 1.6s; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: #637383">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      Opens only after your mobile is verified
+    </div>
+  </div>
+</sc-if>
+
+<!-- ═════════ 1 · OTP verify ═════════ -->
+<sc-if value="{{ s1 }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 104px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+    <div class="curtain"></div>
+    <div class="kicker" style="animation-delay: .3s">Step 1 · Verify</div>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em">
+      <span class="w" style="animation-delay: .4s">Enter</span> <span class="w" style="animation-delay: .47s">the</span> <span class="w" style="animation-delay: .54s">code</span> <span class="w" style="animation-delay: .61s">we</span> <span class="w" style="animation-delay: .68s">sent</span> <span class="w" style="animation-delay: .75s">you.</span>
+    </h1>
+    <p class="up" style="animation-delay: .9s; margin: 0; font-size: 15px; line-height: 1.5; color: #637383">A 6-digit code was sent by SMS to <b style="color: #142844">+91 98•••••480</b>.</p>
+    <div class="up" style="animation-delay: 1s; position: relative; display: flex; gap: 8px; margin-top: 8px">
+      <sc-for list="{{ boxes }}" as="b" hint-placeholder-count="6">
+        <div class="otp" style="border-color: {{ b.bd }}; box-shadow: {{ b.sh }}">
+          {{ b.ch }}
+          <sc-if value="{{ b.caret }}" hint-placeholder-val="{{ false }}"><span class="blink" style="width: 2px; height: 26px; background: #142844"></span></sc-if>
+        </div>
+      </sc-for>
+      <input class="otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" value="{{ code }}" onChange="{{ onCode }}" aria-label="6-digit code">
+    </div>
+    <div class="up" style="animation-delay: 1.1s; display: flex; justify-content: space-between; align-items: center">
+      <span class="mono" style="font-size: 12px; color: #637383">Resend in 0:24</span>
+      <button class="link" type="button" onClick="{{ demo }}">Fill demo code</button>
+    </div>
+    <div style="flex: 1"></div>
+    <button class="btn btn-ink up" type="button" style="animation-delay: 1.2s; width: 100%; min-height: 54px" disabled="{{ noCode }}" onClick="{{ toDetails }}">Verify &amp; continue</button>
+  </div>
+</sc-if>
+
+<!-- ═════════ 2 · confirm details ═════════ -->
+<sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 104px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+    <div class="curtain"></div>
+    <div class="kicker" style="animation-delay: .3s">Step 2 · Details</div>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em">
+      <span class="w" style="animation-delay: .4s">Is</span> <span class="w" style="animation-delay: .47s">this</span> <span class="w" style="animation-delay: .54s; color: #B76A3B">you?</span>
+    </h1>
+    <div class="card up" style="animation-delay: .75s; padding: 6px 18px; display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid #E6ECEC">
+        <div class="pop" style="animation-delay: 1s; width: 44px; height: 44px; border-radius: 50%; background: #DCECF2; display: grid; place-items: center; font-weight: 800; font-size: 16px">RV</div>
+        <div><div style="font-weight: 700; font-size: 17px">Ramesh Kumar Verma</div><div class="mono" style="font-size: 12px; color: #637383; margin-top: 3px">+91 98•••••480</div></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid #E6ECEC"><span class="mono" style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #637383">Centre code</span><span style="font-weight: 700">1042</span></div>
+      <div style="display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid #E6ECEC"><span class="mono" style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #637383; flex: none">Centre</span><span style="font-weight: 600; text-align: right; line-height: 1.35">Govt. Inter College, Hazratganj, Lucknow</span></div>
+      <div style="display: flex; justify-content: space-between; gap: 16px; padding: 13px 0"><span class="mono" style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #637383; flex: none">Exam</span><span style="font-weight: 600; text-align: right; line-height: 1.35">UPESSC TGT Exam 2026<br>12 Oct 2026 · Shift 1</span></div>
+    </div>
+    <div class="up" style="animation-delay: .95s; display: flex; gap: 10px; padding: 12px 14px; border-radius: 14px; background: #DCECF2; font-size: 13px; line-height: 1.45">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#142844" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+      These details come from the exam office. If anything is wrong, contact them before you sign.
+    </div>
+    <div style="flex: 1"></div>
+    <button class="btn btn-ink up" type="button" style="animation-delay: 1.1s; width: 100%; min-height: 54px" onClick="{{ toUpload }}">Yes, that's me</button>
+  </div>
+</sc-if>
+
+<!-- ═════════ 3 · upload / scan CSR ═════════ -->
+<sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 104px 24px 28px; display: flex; flex-direction: column; gap: 14px">
+    <div class="curtain"></div>
+    <div class="kicker" style="animation-delay: .3s">Step 3 · Upload</div>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em">
+      <span class="w" style="animation-delay: .4s">Add</span> <span class="w" style="animation-delay: .47s">your</span> <span class="w" style="animation-delay: .54s">CSR.</span>
+    </h1>
+    <p class="up" style="animation-delay: .7s; margin: 0; font-size: 14px; line-height: 1.5; color: #637383">Scan the paper report page by page, or upload a file. Pages are merged into one PDF.</p>
+    <div class="up" style="animation-delay: .85s; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <button class="card lift" type="button" onClick="{{ addPage }}" style="padding: 16px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; cursor: pointer; text-align: left; font: inherit; color: inherit">
+        <span style="width: 40px; height: 40px; border-radius: 12px; background: #142844; display: grid; place-items: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        </span>
+        <span style="font-weight: 700; font-size: 15px">{{ scanLabel }}</span>
+        <span class="mono" style="font-size: 11px; color: #637383">Camera</span>
+      </button>
+      <button class="card lift" type="button" onClick="{{ uploadFile }}" style="padding: 16px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; cursor: pointer; text-align: left; font: inherit; color: inherit">
+        <span style="width: 40px; height: 40px; border-radius: 12px; background: #DCECF2; display: grid; place-items: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#142844" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 16v4h16v-4"></path></svg>
+        </span>
+        <span style="font-weight: 700; font-size: 15px">Upload file</span>
+        <span class="mono" style="font-size: 11px; color: #637383">PDF · JPG · PNG</span>
+      </button>
+    </div>
+    <div class="up" style="animation-delay: 1s; position: relative; flex: 1; min-height: 210px; border-radius: 18px; border: 1.5px dashed #A8BBC2; background: #FFFFFF80">
+      <sc-if value="{{ noPages }}" hint-placeholder-val="{{ true }}">
+        <div style="position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px">
+          <div><div style="font-weight: 700; font-size: 15px">Your pages will stack here</div><div class="mono" style="font-size: 11px; color: #637383; margin-top: 6px">No size limit · any number of pages</div></div>
+        </div>
+      </sc-if>
+      <sc-for list="{{ pile }}" as="p" hint-placeholder-count="0">
+        <div style="position: absolute; left: 50%; top: 50%; width: 124px; height: 164px; margin: -78px 0 0 -62px; transform: {{ p.tf }}">
+          <div class="drop" style="width: 100%; height: 100%; box-sizing: border-box; border-radius: 6px; background: #FFFFFF; border: 1px solid #D4DEE0; box-shadow: 0 14px 24px -16px #14284466; padding: 14px 12px; display: flex; flex-direction: column; gap: 7px">
+            <div style="height: 6px; width: 70%; border-radius: 3px; background: #142844"></div>
+            <div style="height: 4px; width: 90%; border-radius: 2px; background: #D4DEE0"></div>
+            <div style="height: 4px; width: 80%; border-radius: 2px; background: #D4DEE0"></div>
+            <div style="height: 4px; width: 86%; border-radius: 2px; background: #D4DEE0"></div>
+            <div style="height: 4px; width: 60%; border-radius: 2px; background: #D4DEE0"></div>
+            <div style="flex: 1"></div>
+            <div class="mono" style="font-size: 10px; color: #637383">Page {{ p.n }}</div>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ hasPages }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; justify-content: space-between; align-items: center">
+          <span class="chip pop" style="background: #E3F0EC; color: #2E7567">{{ pages }} {{ pageWord }}</span>
+          <button class="link" type="button" style="font-size: 13px" onClick="{{ clearPages }}">Start over</button>
+        </div>
+      </sc-if>
+    </div>
+    <button class="btn btn-ink up" type="button" style="animation-delay: 1.1s; width: 100%; min-height: 54px" disabled="{{ noPages }}" onClick="{{ toPreview }}">Review document</button>
+  </div>
+</sc-if>
+
+<!-- ═════════ 4 · review uploaded document ═════════ -->
+<sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 104px 0 28px; display: flex; flex-direction: column; gap: 14px">
+    <div class="curtain"></div>
+    <div style="padding: 0 24px; display: flex; flex-direction: column; gap: 14px">
+      <div class="kicker" style="animation-delay: .3s">Step 4 · Review</div>
+      <h1 style="margin: 0; font-size: 34px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em">
+        <span class="w" style="animation-delay: .4s">Check</span> <span class="w" style="animation-delay: .47s">your</span> <span class="w" style="animation-delay: .54s">document.</span>
+      </h1>
+      <p class="up" style="animation-delay: .7s; margin: 0; font-size: 14px; line-height: 1.5; color: #637383">This is exactly what you will sign. You can still replace it.</p>
+    </div>
+    <div style="display: flex; gap: 14px; overflow-x: auto; padding: 8px 24px 14px; scroll-snap-type: x mandatory">
+      <sc-for list="{{ pile }}" as="p" hint-placeholder-count="3">
+        <div class="up" style="animation-delay: {{ p.d }}s; flex: none; width: 236px; height: 316px; box-sizing: border-box; scroll-snap-align: center; border-radius: 8px; background: #FFFFFF; border: 1px solid #D4DEE0; box-shadow: 0 18px 34px -24px #14284480; padding: 22px 20px; display: flex; flex-direction: column; gap: 9px; position: relative">
+          <div style="font-weight: 800; font-size: 12px; letter-spacing: .02em">SATISFACTORY REPORT (CSR)</div>
+          <div class="mono" style="font-size: 9px; color: #637383">Centre 1042 · TGT 2026 · Shift 1</div>
+          <div style="height: 1px; background: #142844; margin: 4px 0"></div>
+          <div style="height: 5px; width: 92%; border-radius: 3px; background: #D4DEE0"></div>
+          <div style="height: 5px; width: 78%; border-radius: 3px; background: #D4DEE0"></div>
+          <div style="height: 5px; width: 86%; border-radius: 3px; background: #D4DEE0"></div>
+          <div style="height: 5px; width: 64%; border-radius: 3px; background: #D4DEE0"></div>
+          <div style="height: 5px; width: 88%; border-radius: 3px; background: #D4DEE0"></div>
+          <div style="height: 5px; width: 54%; border-radius: 3px; background: #D4DEE0"></div>
+          <div style="flex: 1"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center"><span class="chip" style="background: #DCECF2; color: #142844">Page {{ p.n }}</span><span class="mono" style="font-size: 9px; color: #637383">of {{ pages }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+    <div class="up mono" style="animation-delay: 1s; padding: 0 24px; font-size: 12px; color: #637383">{{ pages }} {{ pageWord }} · merged PDF · 2.4 MB</div>
+    <div style="flex: 1"></div>
+    <div class="up" style="animation-delay: 1.1s; padding: 0 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px">
+      <button class="btn btn-line" type="button" style="min-height: 54px" onClick="{{ replace }}">Replace</button>
+      <button class="btn btn-ink" type="button" style="min-height: 54px" onClick="{{ toPhoto }}">Looks good</button>
+    </div>
+  </div>
+</sc-if>
+
+<!-- ═════════ 5 · live photo ═════════ -->
+<sc-if value="{{ s5 }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 104px 24px 28px; display: flex; flex-direction: column; gap: 14px">
+    <div class="curtain"></div>
+    <div class="kicker" style="animation-delay: .3s">Step 5 · Photo</div>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em">
+      <span class="w" style="animation-delay: .4s">Your</span> <span class="w" style="animation-delay: .47s">face</span> <span class="w" style="animation-delay: .54s">is</span> <span class="w" style="animation-delay: .61s">your</span> <span class="w" style="animation-delay: .68s; color: #B76A3B">signature.</span>
+    </h1>
+    <div class="up" style="animation-delay: .8s; position: relative; height: 372px; border-radius: 24px; overflow: hidden; background: #102849">
+      <svg width="342" height="372" viewBox="0 0 342 372" fill="none" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%">
+        <g class="fade" style="animation-delay: .9s">
+          <circle cx="171" cy="168" r="56" fill="#2A4A78"></circle>
+          <path d="M62 372c6-70 52-110 109-110s103 40 109 110z" fill="#2A4A78"></path>
+        </g>
+        <ellipse cx="171" cy="176" rx="94" ry="120" stroke="#FFFFFF" stroke-opacity=".55" stroke-width="2" pathLength="1" class="draw" style="animation-delay: 1s"></ellipse>
+        <ellipse cx="171" cy="176" rx="94" ry="120" stroke="#5FD0B0" stroke-width="3.5" pathLength="1" class="draw" style="animation-delay: 2.3s"></ellipse>
+      </svg>
+      <div style="position: absolute; left: 16px; top: 16px; width: 22px; height: 22px; border-left: 2px solid #FFFFFF66; border-top: 2px solid #FFFFFF66; border-radius: 6px 0 0 0"></div>
+      <div style="position: absolute; right: 16px; top: 16px; width: 22px; height: 22px; border-right: 2px solid #FFFFFF66; border-top: 2px solid #FFFFFF66; border-radius: 0 6px 0 0"></div>
+      <div style="position: absolute; left: 16px; bottom: 16px; width: 22px; height: 22px; border-left: 2px solid #FFFFFF66; border-bottom: 2px solid #FFFFFF66; border-radius: 0 0 0 6px"></div>
+      <div style="position: absolute; right: 16px; bottom: 16px; width: 22px; height: 22px; border-right: 2px solid #FFFFFF66; border-bottom: 2px solid #FFFFFF66; border-radius: 0 0 6px 0"></div>
+      <sc-if value="{{ notShot }}" hint-placeholder-val="{{ true }}">
+        <div class="out-late" style="position: absolute; inset: 0; animation-delay: 2.2s">
+          <div class="scan" style="position: absolute; left: 18%; right: 18%; height: 2px; background: linear-gradient(90deg, #B8D9E400, #B8D9E4, #B8D9E400); box-shadow: 0 0 18px 4px #B8D9E455"></div>
+        </div>
+        <div style="position: absolute; left: 0; right: 0; bottom: 18px; display: grid; place-items: center">
+          <span class="chip out-late" style="grid-area: 1 / 1; animation-delay: 2.1s; height: 30px; background: #FFFFFF1F; color: #FFFFFF">Looking for your face…</span>
+          <span class="chip pop" style="grid-area: 1 / 1; animation-delay: 2.35s; height: 30px; background: #E3F0EC; color: #2E7567">Face detected · 1 person</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ shot }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; inset: 0; border: 4px solid #5FD0B0; border-radius: 24px"></div>
+        <div class="flash" style="position: absolute; inset: 0; background: #FFFFFF"></div>
+        <div style="position: absolute; left: 0; right: 0; bottom: 18px; display: grid; place-items: center">
+          <span class="chip pop" style="animation-delay: .3s; height: 30px; background: #2E7567; color: #FFFFFF">Captured · 14:31:40</span>
+        </div>
+      </sc-if>
+    </div>
+    <div class="card pop" style="animation-delay: 2.5s; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 14px">
+      <span style="position: relative; width: 30px; height: 30px; border-radius: 50%; background: #E3F0EC; display: grid; place-items: center; flex: none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7567" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>
+      </span>
+      <div style="min-width: 0"><div style="font-weight: 700; font-size: 13px">Location captured</div><div class="mono" style="font-size: 11px; color: #637383; margin-top: 2px">26.8467° N, 80.9462° E · ±12 m</div></div>
+    </div>
+    <div style="flex: 1"></div>
+    <sc-if value="{{ notShot }}" hint-placeholder-val="{{ true }}">
+      <button class="btn btn-ink up" type="button" style="animation-delay: 1.1s; width: 100%; min-height: 54px" onClick="{{ capture }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        Capture photo
+      </button>
+    </sc-if>
+    <sc-if value="{{ shot }}" hint-placeholder-val="{{ false }}">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px">
+        <button class="btn btn-line" type="button" style="min-height: 54px" onClick="{{ retake }}">Retake</button>
+        <button class="btn btn-ink" type="button" style="min-height: 54px" onClick="{{ toConsent }}">Use this photo</button>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<!-- ═════════ 6 · final review + consent ═════════ -->
+<sc-if value="{{ s6 }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 104px 24px 28px; display: flex; flex-direction: column; gap: 14px">
+    <div class="curtain"></div>
+    <div class="kicker" style="animation-delay: .3s">Step 6 · Consent</div>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em">
+      <span class="w" style="animation-delay: .4s">One</span> <span class="w" style="animation-delay: .47s">last</span> <span class="w" style="animation-delay: .54s">look.</span>
+    </h1>
+    <div class="card up" style="animation-delay: .7s; padding: 4px 16px">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #E6ECEC">
+        <span style="width: 38px; height: 46px; border-radius: 5px; border: 1px solid #D4DEE0; background: #FFFFFF; display: grid; place-items: center; flex: none"><span style="width: 20px; height: 3px; border-radius: 2px; background: #142844"></span></span>
+        <div style="flex: 1; min-width: 0"><div style="font-weight: 700; font-size: 14px">CSR · {{ pages }} {{ pageWord }}</div><div class="mono" style="font-size: 11px; color: #637383; margin-top: 2px">Merged PDF · 2.4 MB</div></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7567" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="pop" style="animation-delay: 1s"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #E6ECEC">
+        <span style="width: 38px; height: 38px; border-radius: 50%; background: #2A4A78; overflow: hidden; display: grid; place-items: end center; flex: none"><svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="15" r="7" fill="#8FB3CF"></circle><path d="M5 38c1-9 7-13 14-13s13 4 14 13z" fill="#8FB3CF"></path></svg></span>
+        <div style="flex: 1; min-width: 0"><div style="font-weight: 700; font-size: 14px">Live photo</div><div class="mono" style="font-size: 11px; color: #637383; margin-top: 2px">Face detected · 14:31:40</div></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7567" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="pop" style="animation-delay: 1.1s"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0">
+        <span style="width: 38px; height: 38px; border-radius: 50%; background: #E3F0EC; display: grid; place-items: center; flex: none"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2E7567" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg></span>
+        <div style="flex: 1; min-width: 0"><div style="font-weight: 700; font-size: 14px">Centre 1042 · Lucknow</div><div class="mono" style="font-size: 11px; color: #637383; margin-top: 2px">26.8467° N, 80.9462° E</div></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7567" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="pop" style="animation-delay: 1.2s"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+      </div>
+    </div>
+    <div class="up" style="animation-delay: .95s; display: flex; flex-direction: column; gap: 12px; margin-top: 4px">
+      <label style="display: flex; gap: 12px; font-size: 14px; line-height: 1.45; cursor: pointer">
+        <input class="check" type="checkbox" checked="{{ a1 }}" onChange="{{ toggleA1 }}">
+        <span>I confirm this CSR is the true report of my centre for this exam.</span>
+      </label>
+      <label style="display: flex; gap: 12px; font-size: 14px; line-height: 1.45; cursor: pointer">
+        <input class="check" type="checkbox" checked="{{ a2 }}" onChange="{{ toggleA2 }}">
+        <span>I agree to sign electronically with my live photo and a mobile OTP.</span>
+      </label>
+    </div>
+    <div style="flex: 1"></div>
+    <button class="btn btn-ink up" type="button" style="animation-delay: 1.1s; width: 100%; min-height: 54px" disabled="{{ noConsent }}" onClick="{{ toSignOtp }}">Continue to sign</button>
+  </div>
+</sc-if>
+
+<!-- ═════════ 7 · sign with OTP ═════════ -->
+<sc-if value="{{ s7 }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 104px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+    <div class="curtain"></div>
+    <div class="kicker" style="animation-delay: .3s">Step 7 · Sign</div>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em">
+      <span class="w" style="animation-delay: .4s">Sign</span> <span class="w" style="animation-delay: .47s">with</span> <span class="w" style="animation-delay: .54s">your</span> <span class="w" style="animation-delay: .61s; color: #2E7567">OTP.</span>
+    </h1>
+    <p class="up" style="animation-delay: .8s; margin: 0; font-size: 15px; line-height: 1.5; color: #637383">We sent a new code to <b style="color: #142844">+91 98•••••480</b>. Entering it signs every page of your CSR.</p>
+    <div class="up" style="animation-delay: .95s; position: relative; display: flex; gap: 8px; margin-top: 4px">
+      <sc-for list="{{ boxes }}" as="b" hint-placeholder-count="6">
+        <div class="otp" style="border-color: {{ b.bd }}; box-shadow: {{ b.sh }}">
+          {{ b.ch }}
+          <sc-if value="{{ b.caret }}" hint-placeholder-val="{{ false }}"><span class="blink" style="width: 2px; height: 26px; background: #142844"></span></sc-if>
+        </div>
+      </sc-for>
+      <input class="otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" value="{{ code }}" onChange="{{ onCode }}" aria-label="6-digit signing code">
+    </div>
+    <div class="up" style="animation-delay: 1.05s; display: flex; justify-content: space-between; align-items: center">
+      <span class="mono" style="font-size: 12px; color: #637383">Resend in 0:30</span>
+      <button class="link" type="button" onClick="{{ demo }}">Fill demo code</button>
+    </div>
+    <div class="up" style="animation-delay: 1.15s; border-radius: 16px; background: #FFFFFF; border: 1px solid #D4DEE0; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+      <span class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #637383">You are signing</span>
+      <span style="font-weight: 700; font-size: 15px">CSR · Centre 1042 · {{ pages }} {{ pageWord }}</span>
+      <span style="font-size: 13px; color: #637383">Signature block on every page, plus a certificate page with your photo and OTP record.</span>
+    </div>
+    <div style="flex: 1"></div>
+    <button class="btn btn-green up" type="button" style="animation-delay: 1.25s; width: 100%; min-height: 54px" disabled="{{ noCode }}" onClick="{{ sign }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path><path d="M13.5 6.5l4 4"></path></svg>
+      Sign document
+    </button>
+  </div>
+</sc-if>
+
+<!-- ═════════ 8 · done ═════════ -->
+<sc-if value="{{ s8 }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; box-sizing: border-box; padding: 40px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+    <div class="curtain"></div>
+    <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="18">
+      <span class="fall" style="position: absolute; top: 0; left: {{ c.x }}%; width: {{ c.w }}px; height: {{ c.h }}px; border-radius: 2px; background: {{ c.bg }}; animation-delay: {{ c.d }}s; animation-duration: {{ c.t }}s"></span>
+    </sc-for>
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 18px">
+      <svg width="124" height="124" viewBox="0 0 124 124" fill="none" aria-hidden="true">
+        <circle cx="62" cy="62" r="58" stroke="#2E7567" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="3 6" class="spin-slow"></circle>
+        <circle cx="62" cy="62" r="48" stroke="#2E7567" stroke-width="3" pathLength="1" class="draw" style="animation-delay: .5s"></circle>
+        <circle cx="62" cy="62" r="40" fill="#2E7567" class="pop" style="animation-delay: 1.35s; transform-box: fill-box; transform-origin: center"></circle>
+        <path d="M45 63l12 12 22-25" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="draw" style="animation-delay: 1.6s"></path>
+      </svg>
+      <div class="kicker" style="animation-delay: .6s">eSign complete · Centre 1042</div>
+      <h1 style="margin: 0; font-size: 64px; line-height: .92; font-weight: 800; letter-spacing: -0.045em">
+        <span class="w" style="animation-delay: .8s; color: #2E7567">Signed.</span>
+      </h1>
+      <p class="up" style="animation-delay: 1.1s; margin: 0; font-size: 15px; line-height: 1.5; color: #637383">Your CSR is signed and stored securely. The exam office can see it now.</p>
+      <div class="card up" style="animation-delay: 1.3s; padding: 4px 16px">
+        <div style="display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #E6ECEC"><span class="mono" style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #637383">Signed at</span><span class="mono" style="font-size: 12.5px; font-weight: 600">12 Oct 2026 · 14:32:10 IST</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #E6ECEC"><span class="mono" style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #637383">Document ID</span><span class="mono" style="font-size: 12.5px; font-weight: 600">SQ-1042-7F3A</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; padding: 11px 0"><span class="mono" style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #637383">Pages</span><span class="mono" style="font-size: 12.5px; font-weight: 600">{{ pages }} + certificate</span></div>
+      </div>
+    </div>
+    <button class="btn btn-ink up sheen" type="button" style="animation-delay: 1.5s; width: 100%; min-height: 54px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+      Download signed PDF
+    </button>
+    <button class="btn btn-ghost fade" type="button" style="animation-delay: 1.7s; width: 100%" onClick="{{ restart }}">Start the demo again</button>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startStep":{"editor":"int","default":0,"min":0,"max":8},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = {};
+  renderVals() {
+    const start = Math.max(0, Math.min(8, Number(this.props.startStep ?? 0)));
+    const st = this.state;
+    const step = st.step ?? start;
+    const pages = st.pages ?? (start >= 4 ? 3 : 0);
+    const shot = st.shot ?? (start >= 6);
+    const a1 = st.a1 ?? (start >= 7);
+    const a2 = st.a2 ?? (start >= 7);
+    const code = st.code ?? '';
+    const go = (n, extra) => () => this.setState(Object.assign({ step: n, code: '' }, extra || {}));
+
+    const segs = [1, 2, 3, 4, 5, 6, 7].map((n) => ({ bg: step > n ? '#142844' : (step === n ? '#B76A3B' : '#D4DEE0') }));
+    const boxes = [0, 1, 2, 3, 4, 5].map((i) => {
+      const on = i === code.length;
+      return {
+        ch: code[i] || '',
+        caret: on,
+        bd: on ? '#142844' : (code[i] ? '#A8BBC2' : '#D4DEE0'),
+        sh: on ? '0 0 0 4px #DCECF2' : '0 0 0 0 transparent'
+      };
+    });
+    const pile = Array.from({ length: pages }, (_, n) => ({
+      n: n + 1,
+      d: (0.75 + n * 0.08).toFixed(2),
+      tf: 'translate(' + (Math.sin(n * 1.7) * 14).toFixed(1) + 'px, ' + (-n * 7) + 'px) rotate(' + (Math.sin(n * 2.3) * 5).toFixed(1) + 'deg)'
+    }));
+    const tones = ['#2E7567', '#B76A3B', '#C9962B', '#2557DA', '#B8D9E4', '#142844'];
+    const confetti = Array.from({ length: 18 }, (_, i) => ({
+      x: (4 + ((i * 37) % 92)).toFixed(0),
+      w: 6 + (i % 3) * 2,
+      h: 9 + (i % 4) * 3,
+      bg: tones[i % tones.length],
+      d: (1.5 + (i % 6) * 0.12).toFixed(2),
+      t: (2.4 + (i % 5) * 0.3).toFixed(1)
+    }));
+
+    return {
+      s0: step === 0, s1: step === 1, s2: step === 2, s3: step === 3, s4: step === 4,
+      s5: step === 5, s6: step === 6, s7: step === 7, s8: step === 8,
+      showBar: step >= 1 && step <= 7,
+      stepNo: step,
+      segs, boxes, code, pile, pages, confetti,
+      pageWord: pages === 1 ? 'page' : 'pages',
+      scanLabel: pages > 0 ? 'Scan next page' : 'Scan pages',
+      noCode: code.length < 6,
+      noPages: pages === 0,
+      hasPages: pages > 0,
+      shot, notShot: !shot,
+      a1, a2, noConsent: !(a1 && a2),
+      onCode: (e) => this.setState({ code: String(e.target.value || '').replace(/\D/g, '').slice(0, 6) }),
+      demo: () => this.setState({ code: '482196' }),
+      back: go(Math.max(0, step - 1)),
+      toOtp: go(1),
+      toDetails: go(2),
+      toUpload: go(3),
+      addPage: () => this.setState({ pages: Math.min(pages + 1, 8) }),
+      uploadFile: () => this.setState({ pages: 3 }),
+      clearPages: () => this.setState({ pages: 0 }),
+      toPreview: go(4),
+      replace: go(3, { pages: 0 }),
+      toPhoto: go(5, { shot: false }),
+      capture: () => this.setState({ shot: true }),
+      retake: () => this.setState({ shot: false }),
+      toConsent: go(6),
+      toggleA1: () => this.setState({ a1: !a1 }),
+      toggleA2: () => this.setState({ a2: !a2 }),
+      toSignOtp: go(7),
+      sign: go(8),
+      restart: () => this.setState({ step: 0, pages: 0, shot: false, a1: false, a2: false, code: '' })
+    };
+  }
+}
+</script>
+</body>
+</html>
