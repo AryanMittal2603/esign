@@ -14,7 +14,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (rows.length > 20000) return fail("Up to 20,000 rows per file.");
 
   const result = await validateImport(id, rows);
-  if (!body.commit) return ok({ ...result, valid: result.valid.length, preview: result.valid.slice(0, 5) });
+  if (!body.commit) {
+    // cap the list sent to the browser; the count and downloadable report cover the rest
+    return ok({ total: result.total, valid: result.valid.length, issueCount: result.issues.length, badRows: new Set(result.issues.map((i) => i.row)).size, issues: body.full ? result.issues : result.issues.slice(0, 500), preview: result.valid.slice(0, 5) });
+  }
 
   const added = await createSignatories(id, result.valid);
   await audit({ action: "SIGNATORIES_IMPORTED", actor: "ADMIN", projectId: id, details: { count: added, skipped: result.issues.length }, ...clientInfo(req) });

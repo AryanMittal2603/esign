@@ -75,11 +75,48 @@ export async function createSignatories(projectId: string, rows: { name: string;
   return res.count;
 }
 
-export function projectStats(list: { status: string }[]) {
-  const c = { total: list.length, IMPORTED: 0, SENT: 0, OPENED: 0, VERIFIED: 0, UPLOADED: 0, SIGNED: 0 } as Record<string, number>;
-  for (const s of list) c[s.status]++;
-  const sent = c.total - c.IMPORTED;
-  const opened = c.OPENED + c.VERIFIED + c.UPLOADED + c.SIGNED;
-  const uploaded = c.UPLOADED + c.SIGNED;
-  return { total: c.total, sent, opened, uploaded, signed: c.SIGNED, pending: c.total - c.SIGNED, byStatus: c };
+export type StatusCounts = Record<"IMPORTED" | "SENT" | "OPENED" | "VERIFIED" | "UPLOADED" | "SIGNED", number>;
+
+export function statsFromCounts(c: Partial<StatusCounts>) {
+  const n = (k: keyof StatusCounts) => c[k] ?? 0;
+  const total = n("IMPORTED") + n("SENT") + n("OPENED") + n("VERIFIED") + n("UPLOADED") + n("SIGNED");
+  const opened = n("OPENED") + n("VERIFIED") + n("UPLOADED") + n("SIGNED");
+  const uploaded = n("UPLOADED") + n("SIGNED");
+  const byStatus = { IMPORTED: n("IMPORTED"), SENT: n("SENT"), OPENED: n("OPENED"), VERIFIED: n("VERIFIED"), UPLOADED: n("UPLOADED"), SIGNED: n("SIGNED") };
+  return { total, sent: total - n("IMPORTED"), opened, uploaded, signed: n("SIGNED"), pending: total - n("SIGNED"), byStatus };
+}
+
+/** Status counts per exam via one GROUP BY (no rows loaded), so it stays fast at any size. */
+export async function statsByProject(projectIds?: string[]) {
+  const rows = await db.signatory.groupBy({
+    by: ["projectId", "status"],
+    where: projectIds ? { projectId: { in: projectIds } } : undefined,
+    _count: { _all: true },
+  });
+  const map = new Map<string, Partial<StatusCounts>>();
+  for (const r of rows) {
+    const m = map.get(r.projectId) ?? {};
+    m[r.status] = r._count._all;
+    map.set(r.projectId, m);
+  }
+  return (id: string) => statsFromCounts(map.get(id) ?? {});
+}
+
+/** Signatory list filters shared by the table, the wall and exports. */
+export type ListTab = "all" | "signed" | "pending" | "unsent";
+export function listWhere(projectId: string, tab: ListTab, q: string) {
+  const where: Record<string, unknown> = { projectId };
+  if (tab === "signed") where.status = "SIGNED";
+  else if (tab === "pending") where.status = { not: "SIGNED" };
+  else if (tab === "unsent") where.status = "IMPORTED";
+  const needle = q.trim();
+  if (needle) {
+    where.OR = [
+      { name: { contains: needle, mode: "insensitive" } },
+      { centreCode: { contains: needle, mode: "insensitive" } },
+      { centreName: { contains: needle, mode: "insensitive" } },
+      { mobile: { contains: needle.replace(/\D/g, "") || needle } },
+    ];
+  }
+  return where;
 }

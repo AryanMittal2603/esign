@@ -5,6 +5,7 @@ import { otpTtlMinutes, sendOtpSms } from "./sms";
 
 const RESEND_MS = 30 * 1000;
 const MAX_ATTEMPTS = 5;
+const MAX_PER_HOUR = 10;
 
 export type IssueResult =
   | { ok: true; ref: string; sentAt: Date; resendIn: number }
@@ -19,6 +20,8 @@ export async function issueOtp(mobile: string, purpose: OtpPurpose, signatoryId?
     const resendIn = Math.ceil((RESEND_MS - (Date.now() - last.createdAt.getTime())) / 1000);
     return { ok: false, error: `Please wait ${resendIn}s before asking for a new code.`, status: 429, resendIn };
   }
+  const hourly = await db.otp.count({ where: { mobile, createdAt: { gt: new Date(Date.now() - 60 * 60 * 1000) } } });
+  if (hourly >= MAX_PER_HOUR) return { ok: false, error: "Too many codes requested for this number. Try again in an hour.", status: 429 };
   const code = randomOtp();
   const ref = randomRef();
   const sent = await sendOtpSms(mobile, code);

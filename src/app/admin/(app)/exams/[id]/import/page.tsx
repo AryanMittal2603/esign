@@ -7,7 +7,7 @@ import { ErrorBox, Icon, Kicker, Seal, Spinner, Words, api, useCountUp } from "@
 import { fmtBytes } from "@/lib/format";
 
 type Issue = { row: number; field: string; value: string; problem: string };
-type Check = { valid: number; issues: Issue[]; total: number; preview: { name: string; mobile: string; centreCode: string; centreName: string }[] };
+type Check = { valid: number; issues: Issue[]; issueCount: number; badRows: number; total: number; preview: { name: string; mobile: string; centreCode: string; centreName: string }[] };
 
 export default function ImportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -48,7 +48,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   };
 
-  const badRows = check ? new Set(check.issues.map((i) => i.row)).size : 0;
+  const badRows = check?.badRows ?? 0;
   const stage = done ? 4 : check ? 3 : file ? 2 : 1;
 
   return (
@@ -149,7 +149,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                       <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "#9A5530" }}>3 · Validate</span>
                       <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}>{badRows} {badRows === 1 ? "row" : "rows"} will be skipped</span>
                     </div>
-                    <button className="btn btn-line btn-sm" type="button" onClick={() => downloadIssues(check.issues)}>Download error report</button>
+                    <button className="btn btn-line btn-sm" type="button" onClick={async () => { const full = await api<Check>(`/api/admin/projects/${id}/import`, { method: "POST", json: { rows: file!.rows, commit: false, full: true } }); downloadIssues(full.issues); }}>Download error report</button>
                   </div>
                   <div style={{ overflowX: "auto", maxHeight: 420 }}>
                     <div style={{ minWidth: 820 }}>
@@ -162,6 +162,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                           <span>{i.problem}</span>
                         </div>
                       ))}
+                      {check.issueCount > 300 && <div style={{ padding: "12px 20px", borderTop: "1px solid #EEF2F1", fontSize: 13, color: "#637383" }}>Showing the first 300 of {check.issueCount.toLocaleString("en-IN")} problems. Download the error report for the full list.</div>}
                     </div>
                   </div>
                 </section>

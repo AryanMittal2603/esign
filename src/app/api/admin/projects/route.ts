@@ -1,18 +1,16 @@
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
-import { projectStats, requireAdmin } from "@/lib/admin";
+import { requireAdmin, statsByProject } from "@/lib/admin";
 import { clientInfo, fail, ok } from "@/lib/http";
 
 export async function GET() {
   if (!(await requireAdmin())) return fail("Sign in first", 401);
-  const projects = await db.project.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { signatories: { select: { status: true } } },
-  });
+  const projects = await db.project.findMany({ orderBy: { createdAt: "desc" } });
+  const statsOf = await statsByProject(projects.map((p) => p.id));
   return ok({
     projects: projects.map((p) => ({
       id: p.id, name: p.name, examName: p.examName, examDate: p.examDate, shift: p.shift, createdAt: p.createdAt,
-      stats: projectStats(p.signatories),
+      stats: statsOf(p.id),
     })),
   });
 }

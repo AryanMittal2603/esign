@@ -86,3 +86,17 @@ export async function removePrefix(prefix: string): Promise<number> {
   await fs.rm(dir, { recursive: true, force: true });
   return count;
 }
+
+/** Removes leftover browser uploads for many signatories with a single paginated listing. */
+export async function removeIncomingFor(signatoryIds: Set<string>): Promise<number> {
+  if (storageDriver() !== "blob") return 0; // local uploads never go through incoming/
+  let removed = 0;
+  let cursor: string | undefined;
+  do {
+    const page = await list({ prefix: "incoming/", cursor, limit: 1000 });
+    const mine = page.blobs.filter((b) => signatoryIds.has(b.pathname.split("/")[1] ?? ""));
+    if (mine.length) { await del(mine.map((b) => b.url)); removed += mine.length; }
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+  return removed;
+}
