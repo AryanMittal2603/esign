@@ -1,0 +1,45 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { ErrorBox, Icon, Kicker, Spinner, api } from "@/components/ui";
+
+export function NewExam({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const [f, setF] = useState({ name: "", examName: "", examDate: "", shift: "" });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true); setErr("");
+    try {
+      const r = await api<{ id: string }>("/api/admin/projects", { method: "POST", json: f });
+      router.push(`/admin/exams/${r.id}/import`);
+    } catch (e) { setErr((e as Error).message); setBusy(false); }
+  };
+
+  return (
+    <div className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <form className="modal" onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="New exam">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Kicker delay={0}>New exam</Kicker>
+          <button className="icon-btn" type="button" aria-label="Close" onClick={onClose}><Icon name="close" size={16} stroke={2} /></button>
+        </div>
+        <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em" }}>One exam, one shift</h2>
+        <label><span className="label">Name</span><input className="field" required autoFocus value={f.name} onChange={set("name")} placeholder="TGT Exam 2026 · Shift 1" /></label>
+        <label><span className="label">Exam</span><input className="field" value={f.examName} onChange={set("examName")} placeholder="UPESSC TGT Exam 2026" /></label>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12 }}>
+          <label><span className="label">Exam date</span><input className="field" value={f.examDate} onChange={set("examDate")} placeholder="12 Oct 2026" /></label>
+          <label><span className="label">Shift</span><input className="field" value={f.shift} onChange={set("shift")} placeholder="Shift 1" /></label>
+        </div>
+        <ErrorBox>{err}</ErrorBox>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button className="btn btn-ghost" type="button" onClick={onClose}>Cancel</button>
+          <button className="btn btn-ink" type="submit" disabled={busy}>{busy ? <Spinner /> : null} Create &amp; add signatories</button>
+        </div>
+      </form>
+    </div>
+  );
+}

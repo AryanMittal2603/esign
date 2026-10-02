@@ -46,7 +46,7 @@ export function SignatoryDrawer({ id, smsReady, onClose, onChanged, say }: { id:
     catch (e) { say((e as Error).message, true); }
   };
   const remove = async () => {
-    if (!confirm(`Remove ${d!.name} (centre ${d!.centreCode}) from this project? Their secure link will stop working.`)) return;
+    if (!confirm(`Remove ${d!.name} (centre ${d!.centreCode}) from this exam? Their secure link will stop working.`)) return;
     try { await api(`/api/admin/signatories/${id}`, { method: "DELETE" }); say("Signatory removed"); onChanged(); onClose(); }
     catch (e) { say((e as Error).message, true); }
   };

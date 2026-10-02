@@ -6,7 +6,6 @@ import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { Chip, ErrorBox, Icon, Kicker, Spinner, Words, api, useCountUp, useToast } from "@/components/ui";
 import { STATUS_META, fmtGeo, fmtIST, fmtTimeIST, type Status } from "@/lib/format";
 import { SignatoryDrawer } from "@/components/admin/SignatoryDrawer";
-import { useShell } from "@/components/admin/Shell";
 
 type S = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status; link: string;
@@ -114,15 +113,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 20 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
-          <div className="mono fade" style={{ fontSize: 12, color: "#637383" }}><Link href="/admin" style={{ color: "#637383" }}>Projects</Link> / <span style={{ color: "#142844" }}>{data.project.name}</span></div>
+          <div className="mono fade" style={{ fontSize: 12, color: "#637383" }}><Link href="/admin/exams" style={{ color: "#637383" }}>Exams</Link> / <span style={{ color: "#142844" }}>{data.project.name}</span></div>
           <Kicker delay={0.2}>Live · updated {updated ? fmtTimeIST(updated) : ""}</Kicker>
           <h1 style={{ fontSize: "clamp(30px, 3.6vw, 48px)", lineHeight: 1, fontWeight: 800, letterSpacing: "-0.04em" }}><Words text={data.project.name} start={0.3} /></h1>
           <div className="up mono" style={{ animationDelay: ".8s", fontSize: 12, color: "#637383" }}>{[data.project.examName, data.project.examDate, data.project.shift, `${stats.total} centres`].filter(Boolean).join(" · ")}</div>
         </div>
         <div className="up" style={{ animationDelay: ".7s", display: "flex", flexWrap: "wrap", gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" type="button" onClick={() => setDeleting(true)} style={{ color: "#B23A3A" }}><Icon name="trash" size={16} /> Delete project</button>
+          <button className="btn btn-ghost btn-sm" type="button" onClick={() => setDeleting(true)} style={{ color: "#B23A3A" }}><Icon name="trash" size={16} /> Delete exam</button>
           <button className="btn btn-line btn-sm" type="button" onClick={() => setAdding(true)}><Icon name="plus" size={16} /> Add signatory</button>
-          <Link className="btn btn-line btn-sm" href={`/admin/projects/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
+          <Link className="btn btn-line btn-sm" href={`/admin/exams/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
           <a className="btn btn-line btn-sm" href={`/api/admin/projects/${id}/export`}><Icon name="sheet" size={16} /> Export Excel</a>
           <a className="btn btn-line btn-sm" href={stats.signed ? `/api/admin/projects/${id}/zip` : undefined} aria-disabled={!stats.signed} style={stats.signed ? undefined : { opacity: 0.4, pointerEvents: "none" }}><Icon name="download" size={16} /> ZIP · {stats.signed} signed</a>
           {unsent > 0 ? (
@@ -178,7 +177,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             })}
           </div>
           {wall.length === 0 ? (
-            <div style={{ padding: "30px 0", textAlign: "center", color: "#637383" }}>No signatories yet. <Link href={`/admin/projects/${id}/import`}>Import a CSV</Link> or add one by hand.</div>
+            <div style={{ padding: "30px 0", textAlign: "center", color: "#637383" }}>No signatories yet. <Link href={`/admin/exams/${id}/import`}>Import a CSV</Link> or add one by hand.</div>
           ) : (
             <div className="wall" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${wall.length <= 60 ? 34 : wall.length <= 240 ? 20 : 13}px, 1fr))`, gap: wall.length <= 60 ? 6 : 3 }}>
               {wall.map((t) => (
@@ -312,7 +311,6 @@ function AddSignatory({ projectId, onClose, onAdded }: { projectId: string; onCl
 
 function DeleteProject({ project, stats, onClose }: { project: { id: string; name: string }; stats: { total: number; signed: number; uploaded: number }; onClose: () => void }) {
   const router = useRouter();
-  const { refreshProjects } = useShell();
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -324,16 +322,15 @@ function DeleteProject({ project, stats, onClose }: { project: { id: string; nam
     setBusy(true); setErr("");
     try {
       await api(`/api/admin/projects/${project.id}`, { method: "DELETE", json: { confirm: typed } });
-      refreshProjects();
-      router.replace("/admin");
+      router.replace("/admin/exams");
     } catch (e) { setErr((e as Error).message); setBusy(false); }
   };
 
   return (
     <div className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}>
-      <form className="modal" onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="Delete project">
+      <form className="modal" onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="Delete exam">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div className="kicker" style={{ color: "#B23A3A" }}>Delete project</div>
+          <div className="kicker" style={{ color: "#B23A3A" }}>Delete exam</div>
           <button className="icon-btn" type="button" aria-label="Close" onClick={onClose} disabled={busy}><Icon name="close" size={16} stroke={2} /></button>
         </div>
         <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>Delete “{project.name}” for good?</h2>
@@ -342,15 +339,15 @@ function DeleteProject({ project, stats, onClose }: { project: { id: string; nam
           <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
             <li><b>{stats.total}</b> {stats.total === 1 ? "signatory" : "signatories"} and their secure links</li>
             <li><b>{stats.signed}</b> signed {stats.signed === 1 ? "CSR" : "CSRs"} and <b>{stats.uploaded}</b> uploaded {stats.uploaded === 1 ? "document" : "documents"}, with all live photos</li>
-            <li>The project&apos;s audit trail and pending OTPs</li>
+            <li>The exam&apos;s activity log and pending OTPs</li>
           </ul>
         </div>
         {stats.signed > 0 && (
           <div className="note"><Icon name="info" style={{ marginTop: 1 }} /><span>Download the <b>ZIP of signed CSRs</b> and the <b>Excel report</b> first if you need to keep them.</span></div>
         )}
         <label>
-          <span className="label">Type the project name to confirm</span>
-          <input className="field" autoFocus value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={project.name} aria-label="Project name" />
+          <span className="label">Type the exam name to confirm</span>
+          <input className="field" autoFocus value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={project.name} aria-label="Exam name" />
         </label>
         <ErrorBox>{err}</ErrorBox>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>

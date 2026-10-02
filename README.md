@@ -1,6 +1,6 @@
 # SeqreSign — CSR eSign platform
 
-Secure eSign for examination centre **Satisfactory Reports (CSR)**. The exam office creates a project per exam event, onboards one signatory per centre, and sends each a secure link. The signatory verifies their mobile number with an OTP, uploads or scans the CSR, takes a live photo (face check + GPS), and signs with a second mobile OTP. The system stamps every page, appends a certificate page, and stores the signed PDF encrypted.
+Secure eSign for examination centre **Satisfactory Reports (CSR)**. The exam office creates an exam (one per event and shift), onboards one signatory per centre, and sends each a secure link. The signatory verifies their mobile number with an OTP, uploads or scans the CSR, takes a live photo (face check + GPS), and signs with a second mobile OTP. The system stamps every page, appends a certificate page, and stores the signed PDF encrypted.
 
 - **Admin dashboard** (desktop): `/admin`
 - **Signatory web app** (mobile): `/s/<token>` from the SMS, or `/sign` without a link (mobile + OTP gate)
@@ -76,10 +76,10 @@ See `docs/sample-signed-csr.pdf` for an example output.
 ## Project layout
 
 ```
-src/app/admin/…           admin pages (login, overview, project tracker, import, audit)
+src/app/admin/…           admin pages (login, Overview, Exams list, exam live tracker, CSV import)
 src/app/s/[token]         signatory flow
 src/app/sign              direct access (no link)
-src/app/api/admin/…       admin APIs (projects, import, send links, export, zip, files, audit)
+src/app/api/admin/…       admin APIs (exams, import, send links, export, zip, files, delete)
 src/app/api/sign/…        signatory APIs (OTP, upload, photo, sign, download)
 src/lib/pdf.ts            merge uploads, stamp pages, certificate
 src/lib/storage.ts        encrypted storage (swap for S3 later behind the same interface)

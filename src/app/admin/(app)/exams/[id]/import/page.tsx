@@ -4,7 +4,6 @@ import Link from "next/link";
 import Papa from "papaparse";
 import { use, useRef, useState } from "react";
 import { ErrorBox, Icon, Kicker, Seal, Spinner, Words, api, useCountUp } from "@/components/ui";
-import { useShell } from "@/components/admin/Shell";
 import { fmtBytes } from "@/lib/format";
 
 type Issue = { row: number; field: string; value: string; problem: string };
@@ -12,7 +11,6 @@ type Check = { valid: number; issues: Issue[]; total: number; preview: { name: s
 
 export default function ImportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { refreshProjects } = useShell();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<{ name: string; size: number; rows: Record<string, unknown>[] } | null>(null);
   const [check, setCheck] = useState<Check | null>(null);
@@ -46,7 +44,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     setBusy(true); setErr("");
     try {
       const r = await api<{ added: number; skipped: number }>(`/api/admin/projects/${id}/import`, { method: "POST", json: { rows: file.rows, commit: true } });
-      setDone(r); refreshProjects();
+      setDone(r);
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   };
 
@@ -56,7 +54,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1120, margin: "0 auto" }}>
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-        <Link className="btn btn-ghost btn-sm fade" href={`/admin/projects/${id}`} style={{ paddingLeft: 8 }}><Icon name="back" size={16} stroke={2} /> Back to project</Link>
+        <Link className="btn btn-ghost btn-sm fade" href={`/admin/exams/${id}`} style={{ paddingLeft: 8 }}><Icon name="back" size={16} stroke={2} /> Back to exam</Link>
         <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", gap: 6 }} aria-label="Import steps">
           {["Template", "Upload", "Validate", "Import"].map((label, i) => {
             const n = i + 1, past = n < stage || (done && n === 4), cur = n === stage && !done;
@@ -82,9 +80,9 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
           <div style={{ flex: "1 1 320px", minWidth: 0, display: "flex", flexDirection: "column", gap: 14 }}>
             <Kicker delay={0.5}>4 · Imported</Kicker>
             <h2 style={{ fontSize: "clamp(30px, 3.4vw, 44px)", lineHeight: 1, fontWeight: 800, letterSpacing: "-0.04em" }}><Words text={`${done.added} signatories added.`} start={0.6} accent={1} /></h2>
-            <p className="up" style={{ animationDelay: "1s", margin: 0, fontSize: 16, lineHeight: 1.55, color: "#637383" }}>A unique secure link was created for every centre{done.skipped ? `. ${done.skipped} rows with problems were skipped` : ""}. Send links from the project page.</p>
+            <p className="up" style={{ animationDelay: "1s", margin: 0, fontSize: 16, lineHeight: 1.55, color: "#637383" }}>A unique secure link was created for every centre{done.skipped ? `. ${done.skipped} rows with problems were skipped` : ""}. Send links from the exam page.</p>
             <div className="up" style={{ animationDelay: "1.2s", display: "flex", flexWrap: "wrap", gap: 10 }}>
-              <Link className="btn btn-ink" href={`/admin/projects/${id}`}>Go to project</Link>
+              <Link className="btn btn-ink" href={`/admin/exams/${id}`}>Go to exam</Link>
               <button className="btn btn-ghost" type="button" onClick={() => { setDone(null); setFile(null); setCheck(null); }}>Import another file</button>
             </div>
           </div>
@@ -189,7 +187,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
               )}
 
               <div className="up" style={{ animationDelay: ".7s", display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 10 }}>
-                <Link className="btn btn-ghost" href={`/admin/projects/${id}`}>Cancel</Link>
+                <Link className="btn btn-ghost" href={`/admin/exams/${id}`}>Cancel</Link>
                 <button className="btn btn-ink" type="button" disabled={!check.valid || busy} onClick={commit}>{busy ? <Spinner /> : null} Import {check.valid} signatories</button>
               </div>
             </>
