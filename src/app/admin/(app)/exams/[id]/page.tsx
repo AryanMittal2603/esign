@@ -17,7 +17,7 @@ type Data = {
   stats: { total: number; sent: number; opened: number; uploaded: number; signed: number; pending: number; byStatus: Record<Status, number> };
   recent: { id: string; name: string; centreCode: string; centreName: string; signedAt: string }[];
   lastHour: number;
-  sms: { mode: string; linkSms: boolean };
+  sms: { mode: string; linkSms: boolean; whatsapp: boolean };
   signatories: S[];
 };
 
@@ -77,15 +77,16 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const pct = stats.total ? Math.round((stats.signed / stats.total) * 100) : 0;
 
   const copy = async (s: S) => { await navigator.clipboard.writeText(s.link); say(`Secure link for centre ${s.centreCode} copied`); };
-  const sms = async (ids: string[] | null, scope?: string) => {
+  const send = async (ids: string[] | null, scope?: string, channel?: "sms" | "whatsapp") => {
     setSending(true);
     try {
-      const r = await api<{ sent: number; failed: number; error?: string }>(`/api/admin/projects/${id}/send`, { method: "POST", json: ids ? { ids } : { scope } });
-      say(r.failed ? `Sent ${r.sent}, ${r.failed} failed · ${r.error ?? ""}` : `Link sent by SMS to ${r.sent} ${r.sent === 1 ? "signatory" : "signatories"}`, r.failed > 0);
+      const r = await api<{ sent: number; failed: number; via: string; error?: string }>(`/api/admin/projects/${id}/send`, { method: "POST", json: { ...(ids ? { ids } : { scope }), ...(channel ? { channel } : {}) } });
+      say(r.failed ? `Sent ${r.sent}, ${r.failed} failed · ${r.error ?? ""}` : `Sent on ${r.via} to ${r.sent} ${r.sent === 1 ? "signatory" : "signatories"}`, r.failed > 0);
       load();
     } catch (e) { say((e as Error).message, true); } finally { setSending(false); }
   };
   const whatsapp = async (s: S) => {
+    if (data.sms.whatsapp) return send([s.id], undefined, "whatsapp");
     try {
       const r = await api<{ url: string }>(`/api/admin/signatories/${s.id}/mark-sent`, { method: "POST" });
       window.open(r.url, "_blank", "noopener");
@@ -94,6 +95,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   };
 
   const unsent = stats.byStatus.IMPORTED ?? 0;
+  const canSend = data.sms.whatsapp || data.sms.linkSms;
   const kpis = [
     { label: "Signatories", v: stats.total, fg: "#142844", bar: "#142844", note: "one per centre" },
     { label: "Links sent", v: stats.sent, fg: "#142844", bar: "#A8BBC2", note: unsent ? `${unsent} not sent yet` : "all sent" },
@@ -128,10 +130,10 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           <div className="up" style={{ animationDelay: ".5s", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", position: "relative" }}>
             <button className="btn btn-line btn-sm" type="button" onClick={() => setAdding(true)}><Icon name="plus" size={16} /> Add signatory</button>
             <Link className="btn btn-line btn-sm" href={`/admin/exams/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
-            {unsent > 0 && data.sms.linkSms ? (
-              <button className="btn btn-ink btn-sm" type="button" disabled={sending} onClick={() => sms(null, "unsent")}>{sending ? <Spinner /> : <Icon name="send" size={16} />} Send {unsent} {plural(unsent, "link", "links")}</button>
-            ) : stats.pending > 0 && stats.sent > 0 && data.sms.linkSms ? (
-              <button className="btn btn-ink btn-sm" type="button" disabled={sending} onClick={() => sms(null, "pending")}>{sending ? <Spinner /> : <Icon name="send" size={16} />} Remind {stats.pending} pending</button>
+            {unsent > 0 && canSend ? (
+              <button className="btn btn-ink btn-sm" type="button" disabled={sending} onClick={() => send(null, "unsent")}>{sending ? <Spinner /> : <Icon name={data.sms.whatsapp ? "whatsapp" : "send"} size={16} />} Send {unsent} {plural(unsent, "link", "links")}</button>
+            ) : stats.pending > 0 && stats.sent > 0 && canSend ? (
+              <button className="btn btn-ink btn-sm" type="button" disabled={sending} onClick={() => send(null, "pending")}>{sending ? <Spinner /> : <Icon name="send" size={16} />} Remind {stats.pending} pending</button>
             ) : null}
             <button className="icon-btn" type="button" aria-label="More actions" aria-expanded={menu} onClick={() => setMenu(!menu)} style={{ width: 38, height: 38 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
@@ -270,8 +272,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                   </span>
                   <span style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
                     {!signed && <button className="icon-btn" type="button" aria-label="Copy secure link" title="Copy secure link" onClick={() => copy(s)}><Icon name="link" size={16} /></button>}
-                    {!signed && data.sms.linkSms && <button className="icon-btn" type="button" aria-label="Send link by SMS" title="Send link by SMS" onClick={() => sms([s.id])} disabled={sending}><Icon name="sms" size={16} /></button>}
-                    {!signed && <button className="icon-btn" type="button" aria-label="Send link on WhatsApp" title="Send link on WhatsApp" onClick={() => whatsapp(s)}><Icon name="whatsapp" size={16} /></button>}
+                    {!signed && data.sms.linkSms && <button className="icon-btn" type="button" aria-label="Send link by SMS" title="Send link by SMS" onClick={() => send([s.id], undefined, "sms")} disabled={sending}><Icon name="sms" size={16} /></button>}
+                    {!signed && <button className="icon-btn" type="button" aria-label="Send link on WhatsApp" title="Send link on WhatsApp" onClick={() => whatsapp(s)} disabled={sending}><Icon name="whatsapp" size={16} /></button>}
                     {signed && <a className="icon-btn" aria-label="Download signed PDF" title="Download signed PDF" href={`/api/admin/signatories/${s.id}/file?kind=signed`}><Icon name="download" size={16} /></a>}
                     <button className="icon-btn" type="button" aria-label="Open details" title="Open details" onClick={() => setSel(s.id)} style={{ background: "#142844", color: "#fff", borderColor: "#142844" }}><Icon name="next" size={16} /></button>
                   </span>
@@ -293,7 +295,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         )}
       </section>
 
-      {sel && <SignatoryDrawer id={sel} smsReady={data.sms.linkSms} onClose={() => setSel(null)} onChanged={load} say={say} />}
+      {sel && <SignatoryDrawer id={sel} smsReady={data.sms.linkSms} waReady={data.sms.whatsapp} onClose={() => setSel(null)} onChanged={load} say={say} />}
       {adding && <AddSignatory projectId={id} onClose={() => setAdding(false)} onAdded={() => { setAdding(false); load(); say("Signatory added · secure link created"); }} />}
       {deleting && <DeleteProject project={data.project} stats={stats} onClose={() => setDeleting(false)} />}
       {toast}

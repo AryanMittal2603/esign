@@ -22,7 +22,7 @@ const MILESTONES: { label: string; actions: string[] }[] = [
   { label: "Signed with OTP", actions: ["SIGNED"] },
 ];
 
-export function SignatoryDrawer({ id, smsReady, onClose, onChanged, say }: { id: string; smsReady: boolean; onClose: () => void; onChanged: () => void; say: (m: string, bad?: boolean) => void }) {
+export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say }: { id: string; smsReady: boolean; waReady?: boolean; onClose: () => void; onChanged: () => void; say: (m: string, bad?: boolean) => void }) {
   const [d, setD] = useState<Detail | null>(null);
   const [showLog, setShowLog] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -36,12 +36,14 @@ export function SignatoryDrawer({ id, smsReady, onClose, onChanged, say }: { id:
   }, [onClose]);
 
   const signed = d?.status === "SIGNED";
-  const sms = async () => {
+  const sendVia = async (channel: "sms" | "whatsapp") => {
     setBusy(true);
-    try { await api(`/api/admin/projects/${d!.project.id}/send`, { method: "POST", json: { ids: [id] } }); say(`Link sent by SMS to ${d!.name}`); load(); onChanged(); }
+    try { await api(`/api/admin/projects/${d!.project.id}/send`, { method: "POST", json: { ids: [id], channel } }); say(`Link sent on ${channel === "sms" ? "SMS" : "WhatsApp"} to ${d!.name}`); load(); onChanged(); }
     catch (e) { say((e as Error).message, true); } finally { setBusy(false); }
   };
+  const sms = () => sendVia("sms");
   const wa = async () => {
+    if (waReady) return sendVia("whatsapp");
     try { const r = await api<{ url: string }>(`/api/admin/signatories/${id}/mark-sent`, { method: "POST" }); window.open(r.url, "_blank", "noopener"); load(); onChanged(); }
     catch (e) { say((e as Error).message, true); }
   };
@@ -135,8 +137,8 @@ export function SignatoryDrawer({ id, smsReady, onClose, onChanged, say }: { id:
             ) : (
               <>
                 <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 10 }}>
-                  <button className="btn btn-line" type="button" onClick={wa}><Icon name="whatsapp" /> WhatsApp</button>
-                  <button className="btn btn-ink" type="button" onClick={sms} disabled={!smsReady || busy}>{busy ? <Spinner /> : <Icon name="sms" />} {d.status === "IMPORTED" ? "Send SMS" : "Resend SMS"}</button>
+                  {smsReady && <button className="btn btn-line" type="button" onClick={sms} disabled={busy}><Icon name="sms" /> {d.status === "IMPORTED" ? "Send SMS" : "Resend SMS"}</button>}
+                  <button className="btn btn-ink" type="button" onClick={wa} disabled={busy} style={smsReady ? undefined : { gridColumn: "1 / -1" }}>{busy ? <Spinner /> : <Icon name="whatsapp" />} {d.status === "IMPORTED" ? "Send on WhatsApp" : "Resend on WhatsApp"}</button>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <button className="link" type="button" onClick={async () => { await navigator.clipboard.writeText(d.link); say("Secure link copied"); }}>Copy secure link</button>

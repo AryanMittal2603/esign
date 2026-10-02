@@ -51,6 +51,8 @@ Set `APP_URL` in `.env` to that address so SMS links point to it.
 | `AUTHKEY_OTP_VARS` | Maps the template's `{#variable#}` names to values, e.g. `otp={otp}&site={site}`. Placeholders: `{otp}` `{site}` `{minutes}`. Names must match the template exactly or the SMS arrives with blanks |
 | `AUTHKEY_LINK_VARS` | Same for the link template. Placeholders: `{name}` `{link}` |
 | `OTP_TTL_MINUTES` | OTP validity (default 10) — keep it equal to what the SMS text promises |
+| `GUPSHUP_API_KEY`, `GUPSHUP_APP_NAME`, `GUPSHUP_SOURCE`, `GUPSHUP_TEMPLATE_ID` | WhatsApp intimation through a Gupshup approved template. When set, **Send links**, **Remind** and the row WhatsApp button send the template directly |
+| `GUPSHUP_TEMPLATE_PARAMS` | Template `{{n}}` values, `|`-separated. Placeholders `{exam}` `{name}` `{centre}` `{link}` `{token}`. Default `{exam}` |
 | `AUTHKEY_LINK_SID` | Authkey DLT template for the signing-link SMS (variables `name`, `link`). Until set, share links with WhatsApp / Copy link |
 
 ## Deploy on Vercel

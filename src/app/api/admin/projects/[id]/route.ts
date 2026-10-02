@@ -4,6 +4,7 @@ import { incomingPrefix, removePrefix } from "@/lib/storage";
 import { projectStats, requireAdmin } from "@/lib/admin";
 import { clientInfo, fail, ok } from "@/lib/http";
 import { linkSmsAvailable, signingLink, smsMode } from "@/lib/sms";
+import { whatsappReady } from "@/lib/whatsapp";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAdmin())) return fail("Sign in first", 401);
@@ -29,7 +30,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     stats: projectStats(p.signatories),
     recent,
     lastHour,
-    sms: { mode: smsMode(), linkSms: linkSmsAvailable() },
+    sms: { mode: smsMode(), linkSms: linkSmsAvailable(), whatsapp: whatsappReady() },
     signatories: p.signatories.map((s) => ({
       id: s.id, name: s.name, mobile: s.mobile, centreCode: s.centreCode, centreName: s.centreName, status: s.status,
       link: signingLink(s.token), linkSentAt: s.linkSentAt, linkSentVia: s.linkSentVia, openedAt: s.openedAt,
