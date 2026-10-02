@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 import { Brand, ErrorBox, Icon, Kicker, OtpInput, Seal, Spinner, Words, api } from "@/components/ui";
 import { FaceCamera, getPosition, type CameraHandle, type FaceState, type Geo } from "./FaceCamera";
 import { PdfPreview } from "./PdfPreview";
-import { toJpeg, uploadWithProgress } from "./media";
+import { toJpeg, uploadToBlob, uploadWithProgress } from "./media";
 import { fmtBytes, fmtIST, fmtTimeIST } from "@/lib/format";
 
 type Data = {
@@ -20,6 +20,7 @@ type Data = {
   photo?: { at: string; lat: number; lng: number; accuracy: number | null; face: string } | null;
   consentAt?: string | null;
   signed?: { at: string; documentId: string; pages: number } | null;
+  directUpload?: { prefix: string } | null;
 };
 
 type Step = "link" | "otp" | "details" | "upload" | "preview" | "photo" | "consent" | "signotp" | "done";
@@ -259,10 +260,17 @@ function UploadStep({ token, data, onDone }: { token: string; data: Data; onDone
   const submit = async () => {
     if (!pending.length) { await onDone(); return; }
     setErr(""); setProgress(0);
-    const form = new FormData();
-    pending.forEach((p, i) => form.append("files", p.blob, p.type === "application/pdf" ? p.name : `page-${i + 1}.jpg`));
+    const names = pending.map((p, i) => (p.type === "application/pdf" ? p.name : `page-${i + 1}.jpg`));
     try {
-      await uploadWithProgress(`/api/sign/${token}/upload`, form, setProgress);
+      if (data.directUpload) {
+        // Straight to private Blob storage, then the server merges and encrypts.
+        const parts = await uploadToBlob(token, data.directUpload.prefix, pending.map((p, i) => ({ blob: p.blob, type: p.type, name: names[i] })), setProgress);
+        await api(`/api/sign/${token}/upload`, { method: "POST", json: { parts } });
+      } else {
+        const form = new FormData();
+        pending.forEach((p, i) => form.append("files", p.blob, names[i]));
+        await uploadWithProgress(`/api/sign/${token}/upload`, form, setProgress);
+      }
       setPending([]);
       await onDone();
     } catch (e) { setErr((e as Error).message); } finally { setProgress(null); }

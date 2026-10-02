@@ -1,9 +1,10 @@
 import { audit } from "@/lib/audit";
-import { clientInfo, fail } from "@/lib/http";
+import { clientInfo, fail, fileResponse } from "@/lib/http";
 import { loadByToken } from "@/lib/signer";
 import { getFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 export async function GET(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -13,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
   if (!ctx.s.signedKey) return fail("Not signed yet.", 404);
   const bytes = await getFile(ctx.s.signedKey);
   await audit({ action: "SIGNED_DOWNLOADED", actor: "SIGNATORY", projectId: ctx.s.projectId, signatoryId: ctx.s.id, ...clientInfo(req) });
-  return new Response(new Uint8Array(bytes), {
+  return fileResponse(new Uint8Array(bytes), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${ctx.s.documentId}.pdf"`,

@@ -42,7 +42,9 @@ Set `APP_URL` in `.env` to that address so SMS links point to it.
 | `APP_URL` | Base URL used in signing links |
 | `JWT_SECRET` | Signs admin and signatory sessions |
 | `STORAGE_KEY` | 32-byte hex AES-256-GCM key for every stored file. **Back it up** — losing it makes stored files unreadable |
-| `STORAGE_DIR` | Where encrypted files live (default `./storage`) |
+| `STORAGE_DIR` | Where encrypted files live locally (default `./storage`) |
+| `BLOB_READ_WRITE_TOKEN` | Set automatically when you connect a Vercel Blob store. When present, files go to **private** Vercel Blob instead of disk (still AES-encrypted first) and scans upload straight from the phone to Blob, so there is no 4.5 MB limit |
+| `STORAGE_DRIVER` | Optional. `local` forces disk storage even if a Blob token is set |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Super Admin created by `npm run db:seed` (re-run to reset the password) |
 | `SMS_MODE` | `authkey` sends real SMS · `console` prints OTPs and links to the server log |
 | `AUTHKEY_API_KEY`, `AUTHKEY_OTP_SID` | Authkey account and OTP template |
@@ -50,6 +52,16 @@ Set `APP_URL` in `.env` to that address so SMS links point to it.
 | `AUTHKEY_LINK_VARS` | Same for the link template. Placeholders: `{name}` `{link}` |
 | `OTP_TTL_MINUTES` | OTP validity (default 10) — keep it equal to what the SMS text promises |
 | `AUTHKEY_LINK_SID` | Authkey DLT template for the signing-link SMS (variables `name`, `link`). Until set, share links with WhatsApp / Copy link |
+
+## Deploy on Vercel
+
+1. **Storage → Create → Blob** in the Vercel project, connect it (adds `BLOB_READ_WRITE_TOKEN`).
+2. **Storage → Postgres** (Neon) or any hosted PostgreSQL, set `DATABASE_URL`.
+3. Add the other variables from `.env.example` (generate new `JWT_SECRET` / `STORAGE_KEY` with `openssl rand -hex 32`), and set `APP_URL` to the Vercel URL.
+4. Deploy. The `vercel-build` script runs `prisma migrate deploy` before `next build`.
+5. Create the Super Admin once from your machine: `DATABASE_URL=<prod url> ADMIN_EMAIL=… ADMIN_PASSWORD=… npm run db:seed`.
+
+Downloads (signed PDFs, ZIP, Excel) are streamed, so they are not capped by Vercel's 4.5 MB response limit.
 
 ## How signing works
 

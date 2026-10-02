@@ -2,10 +2,11 @@ import JSZip from "jszip";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireAdmin } from "@/lib/admin";
-import { clientInfo, fail } from "@/lib/http";
+import { clientInfo, fail, fileResponse } from "@/lib/http";
 import { getFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 /** Every signed CSR in the project, one PDF per centre. */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -23,5 +24,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const buf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
   await audit({ action: "EXPORT_ZIP", actor: "ADMIN", projectId: id, details: { files: p.signatories.length }, ...clientInfo(req) });
   const file = `${p.name.replace(/[^A-Za-z0-9]+/g, "_")}_signed_CSRs.zip`;
-  return new Response(new Uint8Array(buf), { headers: { "Content-Type": "application/zip", "Content-Disposition": `attachment; filename="${file}"` } });
+  return fileResponse(new Uint8Array(buf), { headers: { "Content-Type": "application/zip", "Content-Disposition": `attachment; filename="${file}"` } });
 }

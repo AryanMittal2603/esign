@@ -2,11 +2,12 @@ import ExcelJS from "exceljs";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireAdmin } from "@/lib/admin";
-import { clientInfo, describeDevice, fail } from "@/lib/http";
+import { clientInfo, describeDevice, fail, fileResponse } from "@/lib/http";
 import { STATUS_META, fmtIST } from "@/lib/format";
 import { signingLink } from "@/lib/sms";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAdmin())) return fail("Sign in first", 401);
@@ -56,7 +57,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const buf = await wb.xlsx.writeBuffer();
   await audit({ action: "EXPORT_EXCEL", actor: "ADMIN", projectId: id, details: { rows: p.signatories.length }, ...clientInfo(req) });
   const file = `${p.name.replace(/[^A-Za-z0-9]+/g, "_")}_signatories.xlsx`;
-  return new Response(new Uint8Array(buf as ArrayBuffer), {
+  return fileResponse(new Uint8Array(buf as ArrayBuffer), {
     headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Content-Disposition": `attachment; filename="${file}"` },
   });
 }

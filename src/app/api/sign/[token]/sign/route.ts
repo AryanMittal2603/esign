@@ -11,6 +11,7 @@ import { loadByToken } from "@/lib/signer";
 import { getFile, putFile, removeFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 /** Verify the signing OTP, stamp every page, append the certificate, store encrypted and lock. */
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {

@@ -1,10 +1,11 @@
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
-import { clientInfo, fail, ok } from "@/lib/http";
+import { clientInfo, fail, ok, fileResponse } from "@/lib/http";
 import { loadByToken } from "@/lib/signer";
 import { getFile, putFile, removeFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 /** Live camera photo (the visual signature) with GPS. */
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
@@ -50,5 +51,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
   const ctx = await loadByToken(token);
   if (!ctx?.authorised || !ctx.s.photoKey) return fail("Not found", 404);
   const bytes = await getFile(ctx.s.photoKey);
-  return new Response(new Uint8Array(bytes), { headers: { "Content-Type": "image/jpeg", "Cache-Control": "no-store" } });
+  return fileResponse(new Uint8Array(bytes), { headers: { "Content-Type": "image/jpeg", "Cache-Control": "no-store" } });
 }

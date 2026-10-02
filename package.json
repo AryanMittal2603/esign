@@ -11,11 +11,15 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "dev:lan": "next dev -H 0.0.0.0 --experimental-https",
-    "setup": "npm install && npm run db:migrate && npm run db:seed"
+    "setup": "npm install && npm run db:migrate && npm run db:seed",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1146.0",
+    "@aws-sdk/s3-request-presigner": "^3.1146.0",
     "@mediapipe/tasks-vision": "^1.0.1",
     "@prisma/client": "^6.19.3",
+    "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
     "exceljs": "^4.4.0",

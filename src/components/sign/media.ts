@@ -40,3 +40,37 @@ export function uploadWithProgress(url: string, form: FormData, onProgress: (p: 
     xhr.send(form);
   });
 }
+
+/** Uploads each part directly to private Vercel Blob, returning the pathnames for the server to merge. */
+export async function uploadToBlob(
+  token: string,
+  prefix: string,
+  parts: { blob: Blob; type: string; name: string }[],
+  onProgress: (p: number) => void,
+): Promise<{ pathname: string; type: string; name: string }[]> {
+  const { upload } = await import("@vercel/blob/client");
+  const total = parts.reduce((a, p) => a + p.blob.size, 0) || 1;
+  const done: number[] = parts.map(() => 0);
+  const out: { pathname: string; type: string; name: string }[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    const safe = p.name.replace(/[^A-Za-z0-9._-]+/g, "_").slice(-60) || `part-${i + 1}`;
+    try {
+      const r = await upload(`${prefix}${String(i + 1).padStart(3, "0")}-${safe}`, p.blob, {
+        access: "private",
+        handleUploadUrl: `/api/sign/${token}/blob-upload`,
+        contentType: p.type,
+        multipart: p.blob.size > 8 * 1024 * 1024,
+        onUploadProgress: (e) => {
+          done[i] = e.loaded;
+          onProgress(Math.min(0.99, done.reduce((a, b) => a + b, 0) / total));
+        },
+      });
+      out.push({ pathname: r.pathname, type: p.type, name: p.name });
+    } catch (e) {
+      throw new Error((e as Error).message?.replace(/^Vercel Blob: /, "") || "Upload failed. Check your connection and try again.");
+    }
+  }
+  onProgress(1);
+  return out;
+}

@@ -2,6 +2,7 @@ import type { Project, Signatory } from "@prisma/client";
 import { db } from "./db";
 import { getSignerMobile } from "./auth";
 import { maskMobile } from "./format";
+import { incomingPrefix, storageDriver } from "./storage";
 
 export type SignerCtx = { s: Signatory & { project: Project }; authorised: boolean; mobile: string | null };
 
@@ -32,6 +33,8 @@ export function serialise(ctx: SignerCtx) {
     photo: s.photoKey ? { at: s.photoAt, lat: s.geoLat, lng: s.geoLng, accuracy: s.geoAccuracy, face: s.faceCheck } : null,
     consentAt: s.consentAt,
     signed: s.signedAt ? { at: s.signedAt, documentId: s.documentId, pages: s.draftPages } : null,
+    // On Vercel the browser uploads scans straight to private Blob storage (no 4.5 MB request limit).
+    directUpload: storageDriver() === "blob" ? { prefix: incomingPrefix(s.id) } : null,
   };
 }
 

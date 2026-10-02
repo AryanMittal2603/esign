@@ -31,3 +31,20 @@ export function normaliseMobile(input: unknown): string {
   if (m.length === 11 && m.startsWith("0")) m = m.slice(1);
   return m;
 }
+
+/**
+ * Streams a file to the browser in chunks. Streamed responses are not subject to the
+ * 4.5 MB response limit of Vercel Functions, so large signed PDFs and ZIPs download fine.
+ */
+export function fileResponse(bytes: Uint8Array, init: { headers: Record<string, string> }): Response {
+  const CHUNK = 512 * 1024;
+  let offset = 0;
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (offset >= bytes.length) { controller.close(); return; }
+      controller.enqueue(bytes.subarray(offset, offset + CHUNK));
+      offset += CHUNK;
+    },
+  });
+  return new Response(stream, { headers: { "Content-Length": String(bytes.length), "Cache-Control": "no-store", ...init.headers } });
+}
