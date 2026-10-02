@@ -2,6 +2,7 @@
 export const ACTION_TEXT: Record<string, string> = {
   ADMIN_LOGIN: "Admin signed in",
   PROJECT_CREATED: "Project created",
+  PROJECT_DELETED: "Project deleted with all its files",
   SIGNATORY_ADDED: "Signatory added",
   SIGNATORIES_IMPORTED: "Signatories imported from CSV",
   SIGNATORY_REMOVED: "Signatory removed",
@@ -29,5 +30,6 @@ export function actionText(action: string, details?: unknown): string {
   if ((action === "CSR_UPLOADED" || action === "CSR_REPLACED") && d.pages) return `${base} · ${d.pages} page${d.pages === 1 ? "" : "s"}`;
   if (action === "LINK_SENT" && d.via) return `${base} by ${d.via}`;
   if (action === "SIGNATORIES_IMPORTED" && d.count) return `${base} · ${d.count} rows`;
+  if (action === "PROJECT_DELETED" && d.name) return `${base} · ${d.name} (${d.signatories ?? 0} signatories, ${d.files ?? 0} stored files)`;
   return base;
 }

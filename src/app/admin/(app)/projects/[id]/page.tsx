@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { Chip, ErrorBox, Icon, Kicker, Spinner, Words, api, useCountUp, useToast } from "@/components/ui";
 import { STATUS_META, fmtGeo, fmtIST, fmtTimeIST, type Status } from "@/lib/format";
 import { SignatoryDrawer } from "@/components/admin/SignatoryDrawer";
+import { useShell } from "@/components/admin/Shell";
 
 type S = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status; link: string;
@@ -39,6 +41,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [page, setPage] = useState(0);
   const [sel, setSel] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [sending, setSending] = useState(false);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [toast, say] = useToast();
@@ -117,6 +120,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           <div className="up mono" style={{ animationDelay: ".8s", fontSize: 12, color: "#637383" }}>{[data.project.examName, data.project.examDate, data.project.shift, `${stats.total} centres`].filter(Boolean).join(" · ")}</div>
         </div>
         <div className="up" style={{ animationDelay: ".7s", display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <button className="btn btn-ghost btn-sm" type="button" onClick={() => setDeleting(true)} style={{ color: "#B23A3A" }}><Icon name="trash" size={16} /> Delete project</button>
           <button className="btn btn-line btn-sm" type="button" onClick={() => setAdding(true)}><Icon name="plus" size={16} /> Add signatory</button>
           <Link className="btn btn-line btn-sm" href={`/admin/projects/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
           <a className="btn btn-line btn-sm" href={`/api/admin/projects/${id}/export`}><Icon name="sheet" size={16} /> Export Excel</a>
@@ -262,6 +266,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
       {sel && <SignatoryDrawer id={sel} smsReady={data.sms.linkSms} onClose={() => setSel(null)} onChanged={load} say={say} />}
       {adding && <AddSignatory projectId={id} onClose={() => setAdding(false)} onAdded={() => { setAdding(false); load(); say("Signatory added · secure link created"); }} />}
+      {deleting && <DeleteProject project={data.project} stats={stats} onClose={() => setDeleting(false)} />}
       {toast}
     </div>
   );
@@ -299,6 +304,58 @@ function AddSignatory({ projectId, onClose, onAdded }: { projectId: string; onCl
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
           <button className="btn btn-ghost" type="button" onClick={onClose}>Cancel</button>
           <button className="btn btn-ink" type="submit" disabled={busy}>{busy ? <Spinner /> : null} Add</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function DeleteProject({ project, stats, onClose }: { project: { id: string; name: string }; stats: { total: number; signed: number; uploaded: number }; onClose: () => void }) {
+  const router = useRouter();
+  const { refreshProjects } = useShell();
+  const [typed, setTyped] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const match = typed.trim() === project.name.trim();
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!match) return;
+    setBusy(true); setErr("");
+    try {
+      await api(`/api/admin/projects/${project.id}`, { method: "DELETE", json: { confirm: typed } });
+      refreshProjects();
+      router.replace("/admin");
+    } catch (e) { setErr((e as Error).message); setBusy(false); }
+  };
+
+  return (
+    <div className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}>
+      <form className="modal" onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="Delete project">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="kicker" style={{ color: "#B23A3A" }}>Delete project</div>
+          <button className="icon-btn" type="button" aria-label="Close" onClick={onClose} disabled={busy}><Icon name="close" size={16} stroke={2} /></button>
+        </div>
+        <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>Delete “{project.name}” for good?</h2>
+        <div style={{ borderRadius: 14, background: "#F6E2E0", color: "#6E1F1F", padding: "14px 16px", fontSize: 14, lineHeight: 1.55 }}>
+          This permanently removes, and cannot be undone:
+          <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
+            <li><b>{stats.total}</b> {stats.total === 1 ? "signatory" : "signatories"} and their secure links</li>
+            <li><b>{stats.signed}</b> signed {stats.signed === 1 ? "CSR" : "CSRs"} and <b>{stats.uploaded}</b> uploaded {stats.uploaded === 1 ? "document" : "documents"}, with all live photos</li>
+            <li>The project&apos;s audit trail and pending OTPs</li>
+          </ul>
+        </div>
+        {stats.signed > 0 && (
+          <div className="note"><Icon name="info" style={{ marginTop: 1 }} /><span>Download the <b>ZIP of signed CSRs</b> and the <b>Excel report</b> first if you need to keep them.</span></div>
+        )}
+        <label>
+          <span className="label">Type the project name to confirm</span>
+          <input className="field" autoFocus value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={project.name} aria-label="Project name" />
+        </label>
+        <ErrorBox>{err}</ErrorBox>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button className="btn btn-ghost" type="button" onClick={onClose} disabled={busy}>Cancel</button>
+          <button className="btn" type="submit" disabled={!match || busy} style={{ background: "#B23A3A", color: "#fff" }}>{busy ? <><Spinner /> Deleting…</> : <><Icon name="trash" /> Delete permanently</>}</button>
         </div>
       </form>
     </div>

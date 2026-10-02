@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { del, get, put } from "@vercel/blob";
+import { del, get, list, put } from "@vercel/blob";
 import { decrypt, encrypt } from "./crypto";
 
 /**
@@ -63,4 +63,26 @@ export async function takeIncoming(pathname: string): Promise<Buffer> {
   const bytes = await blobBytes(pathname);
   await del(pathname).catch(() => {});
   return bytes;
+}
+
+/** Permanently deletes every stored file under a folder prefix (e.g. "projects/<id>/"). Returns how many were removed. */
+export async function removePrefix(prefix: string): Promise<number> {
+  if (!prefix.endsWith("/") || prefix.includes("..")) throw new Error("Invalid prefix");
+  if (storageDriver() === "blob") {
+    let removed = 0;
+    let cursor: string | undefined;
+    do {
+      const page = await list({ prefix, cursor, limit: 1000 });
+      if (page.blobs.length) {
+        await del(page.blobs.map((b) => b.url));
+        removed += page.blobs.length;
+      }
+      cursor = page.hasMore ? page.cursor : undefined;
+    } while (cursor);
+    return removed;
+  }
+  const dir = resolveKey(prefix.replace(/\/$/, ""));
+  const count = await fs.readdir(dir, { recursive: true, withFileTypes: true }).then((f) => f.filter((e) => e.isFile()).length).catch(() => 0);
+  await fs.rm(dir, { recursive: true, force: true });
+  return count;
 }
