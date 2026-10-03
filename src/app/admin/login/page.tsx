@@ -83,9 +83,14 @@ function Login() {
           <ErrorBox>{err}</ErrorBox>
           <button className="btn btn-ink" type="submit" disabled={busy} style={{ width: "100%", minHeight: 52 }}>{busy ? <Spinner /> : null} Sign in</button>
         </form>
-        <a className="mono fade" href="/sign" style={{ animationDelay: "1.2s", marginTop: 18, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "#637383" }}>
-          <Icon name="phone" size={14} stroke={2} /> Signatory? Sign in with your mobile
-        </a>
+        <div className="up" style={{ animationDelay: "1s", width: "min(100%, 500px)", marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, color: "#637383", fontSize: 12 }}>
+            <span style={{ flex: 1, height: 1, background: "#D4DEE0" }} /> Not from the exam office? <span style={{ flex: 1, height: 1, background: "#D4DEE0" }} />
+          </div>
+          <a className="btn btn-line" href="/sign" style={{ width: "100%", minHeight: 52, background: "#FFFFFFCC" }}>
+            <Icon name="pen" size={18} /> I&apos;m a signatory · Sign in with mobile
+          </a>
+        </div>
       </div>
     </div>
   );

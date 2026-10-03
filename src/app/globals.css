@@ -396,3 +396,9 @@ html:not([lang="en"]) :is(.h1,.entry-title,.intro-h){letter-spacing:-.01em;line-
 .how-step.done .how-ico{background:#4A6A94}
 .glass-card:nth-child(3) .glass-ico{background:#2F4F7A;box-shadow:0 10px 22px -12px #2F4F7A}
 .lang-check{background:#2F4F7A}
+/* signatory app on laptops/desktops: centred card on the themed backdrop */
+@media (min-width:720px){
+  body:has(.phone){background:radial-gradient(900px 520px at 12% 0%,#DCECF2 0%,transparent 62%),radial-gradient(820px 520px at 100% 100%,#F5E6DB 0%,transparent 60%),#EEF2F5}
+  .phone{margin:28px auto;min-height:calc(100dvh - 56px);border-radius:28px;border:1px solid #D4DEE0;background:#F3F6F4;box-shadow:0 1px 0 #14284408,0 40px 80px -44px #14284466}
+  .phone .screen,.phone .entry,.phone.intro{min-height:calc(100dvh - 56px)}
+}
