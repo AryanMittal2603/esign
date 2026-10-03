@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Chip, Icon, Kicker, Silhouette, Spinner, api } from "@/components/ui";
 import { fmtIST, fmtTimeIST, type Status } from "@/lib/format";
+import { DeliveryBadge } from "@/components/admin/Delivery";
 
 type Detail = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status;
@@ -11,6 +12,7 @@ type Detail = {
   signedAt: string | null; documentId: string | null; otpRef: string | null; signedHash: string | null; device: string | null; signIp: string | null;
   hasPhoto: boolean; hasDraft: boolean; hasSigned: boolean;
   events: { at: string; action: string; text: string; actor: string; ip: string | null }[];
+  messages: { channel: string; status: string; error: string | null; at: string; sentAt: string | null; deliveredAt: string | null; readAt: string | null; failedAt: string | null }[];
 };
 
 const MILESTONES: { label: string; actions: string[] }[] = [
@@ -98,6 +100,27 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
                 );
               })}
             </div>
+
+            {d.messages.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "#637383" }}>Invitations</span>
+                {d.messages.map((m, i) => (
+                  <div key={i} style={{ borderRadius: 12, border: "1px solid #E6ECEC", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6, opacity: i ? 0.7 : 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                      <DeliveryBadge status={m.status} channel={m.channel} error={m.error} />
+                      <span className="mono" style={{ fontSize: 11, color: "#637383" }}>{fmtIST(m.at, false)}</span>
+                    </div>
+                    <div className="mono" style={{ display: "flex", flexWrap: "wrap", gap: "2px 14px", fontSize: 11, color: "#637383" }}>
+                      {m.sentAt && <span>Sent {fmtTimeIST(m.sentAt)}</span>}
+                      {m.deliveredAt && <span>Delivered {fmtTimeIST(m.deliveredAt)}</span>}
+                      {m.readAt && <span style={{ color: "#2557DA" }}>Read {fmtTimeIST(m.readAt)}</span>}
+                      {m.status === "failed" && <span style={{ color: "#B23A3A" }}>{m.error ?? "Delivery failed"}</span>}
+                      {!m.sentAt && m.status !== "failed" && m.channel === "WHATSAPP" && <span>Waiting for delivery receipt</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {d.geo && (
               <a href={`https://www.google.com/maps?q=${d.geo.lat},${d.geo.lng}`} target="_blank" rel="noopener noreferrer" style={{ position: "relative", height: 130, borderRadius: 16, overflow: "hidden", backgroundColor: "#E8F1F3", backgroundImage: "linear-gradient(#D4E3E8 1px, transparent 1px), linear-gradient(90deg, #D4E3E8 1px, transparent 1px)", backgroundSize: "22px 22px", display: "block" }} aria-label="Open location in Google Maps">

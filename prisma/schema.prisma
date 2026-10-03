@@ -82,10 +82,18 @@ model Signatory {
   signIp       String?
   signUserAgent String?
 
+  // latest invitation message (WhatsApp/SMS) delivery state, for fast filtering and counts
+  msgChannel  String?
+  msgStatus   String?   // submitted | enqueued | sent | delivered | read | failed
+  msgStatusAt DateTime?
+  msgError    String?
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   auditLogs AuditLog[]
+  messages  Message[]
 
+  @@index([projectId, msgStatus])
   @@unique([projectId, mobile])
   @@unique([projectId, centreCode])
   @@index([mobile])
@@ -125,5 +133,27 @@ model AuditLog {
   createdAt   DateTime   @default(now())
 
   @@index([projectId, createdAt])
+  @@index([signatoryId, createdAt])
+}
+
+/** Every invitation sent to a signatory, with provider delivery receipts. */
+model Message {
+  id          String    @id @default(cuid())
+  projectId   String
+  signatoryId String
+  signatory   Signatory @relation(fields: [signatoryId], references: [id], onDelete: Cascade)
+  channel     String    // WHATSAPP | SMS
+  providerId  String?   @unique // Gupshup message id (returned when sending)
+  waId        String?   @unique // WhatsApp message id (from the enqueued event)
+  status      String    // submitted | enqueued | sent | delivered | read | failed
+  error       String?
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+  failedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([projectId, status])
   @@index([signatoryId, createdAt])
 }

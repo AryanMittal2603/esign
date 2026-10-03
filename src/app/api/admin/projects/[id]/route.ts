@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!p) return fail("Exam not found", 404);
 
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const [statsOf, recent, lastHour, statuses] = await Promise.all([
+  const [statsOf, recent, lastHour, statuses, delivery] = await Promise.all([
     statsByProject([id]),
     db.signatory.findMany({
       where: { projectId: id, signedAt: { not: null } },
@@ -27,7 +27,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     }),
     db.signatory.count({ where: { projectId: id, signedAt: { gt: hourAgo } } }),
     db.signatory.findMany({ where: { projectId: id }, orderBy: { centreCode: "asc" }, select: { status: true } }),
+    db.signatory.groupBy({ by: ["msgStatus"], where: { projectId: id, msgChannel: "WHATSAPP" }, _count: { _all: true } }),
   ]);
+  const msg: Record<string, number> = {};
+  for (const d of delivery) if (d.msgStatus) msg[d.msgStatus] = d._count._all;
   const code: Record<string, string> = { SIGNED: "S", UPLOADED: "U", VERIFIED: "O", OPENED: "O", SENT: "L", IMPORTED: "N" };
 
   return ok({
@@ -37,6 +40,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     lastHour,
     sms: { mode: smsMode(), linkSms: linkSmsAvailable(), whatsapp: whatsappReady() },
     wall: statuses.map((s) => code[s.status]).join(""),
+    // latest WhatsApp invitation per signatory: how far it got
+    delivery: {
+      total: Object.values(msg).reduce((a, b) => a + b, 0),
+      delivered: (msg.delivered ?? 0) + (msg.read ?? 0),
+      read: msg.read ?? 0,
+      failed: msg.failed ?? 0,
+      pending: (msg.submitted ?? 0) + (msg.enqueued ?? 0) + (msg.sent ?? 0),
+    },
+    webhook: !!process.env.GUPSHUP_WEBHOOK_KEY,
   });
 }
 

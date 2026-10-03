@@ -7,10 +7,12 @@ import { Chip, ErrorBox, Icon, Kicker, Spinner, Words, api, useCountUp, useToast
 import { fmtGeo, fmtIST, fmtTimeIST, type Status } from "@/lib/format";
 import { SignatoryDrawer } from "@/components/admin/SignatoryDrawer";
 import { WALL_COLORS, Wall } from "@/components/admin/Wall";
+import { DeliveryBadge } from "@/components/admin/Delivery";
 
 type Row = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status; link: string;
   linkSentAt: string | null; linkSentVia: string | null; signedAt: string | null; geoLat: number | null; geoLng: number | null;
+  msgChannel: string | null; msgStatus: string | null; msgStatusAt: string | null; msgError: string | null;
 };
 type Summary = {
   project: { id: string; name: string; examName: string | null; examDate: string | null; shift: string | null };
@@ -19,8 +21,10 @@ type Summary = {
   lastHour: number;
   sms: { mode: string; linkSms: boolean; whatsapp: boolean };
   wall: string;
+  delivery: { total: number; delivered: number; read: number; failed: number; pending: number };
+  webhook: boolean;
 };
-type Tab = "all" | "signed" | "pending" | "unsent";
+type Tab = "all" | "signed" | "pending" | "unsent" | "failed";
 
 const GROUPS: { key: string; label: string; count: (b: Record<Status, number>) => number }[] = [
   { key: "S", label: "Signed", count: (b) => b.SIGNED },
@@ -120,7 +124,9 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
     { key: "signed", label: "Signed", n: stats.signed },
     { key: "pending", label: "Pending", n: stats.pending },
     { key: "unsent", label: "Not sent", n: unsent },
+    ...(data.delivery.failed ? [{ key: "failed" as Tab, label: "Delivery failed", n: data.delivery.failed }] : []),
   ];
+  const dv = data.delivery;
   const rows = table?.rows ?? [];
   const total = table?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE));
@@ -212,6 +218,31 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
         ))}
       </section>
 
+      {dv.total > 0 && (
+        <section className="card up" style={{ animationDelay: ".5s", padding: "14px 20px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px 26px" }} aria-label="WhatsApp delivery">
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 14 }}>
+            <Icon name="whatsapp" size={18} color="#2E7567" /> WhatsApp delivery
+          </span>
+          {[
+            ["Messages", dv.total, "#142844"],
+            ["Delivered", dv.delivered, "#142844"],
+            ["Read", dv.read, "#2557DA"],
+            ["Awaiting receipt", dv.pending, "#637383"],
+          ].map(([l, v, c]) => (
+            <span key={l as string} style={{ display: "inline-flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: c as string }}>{num(v as number)}</span>
+              <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".1em", textTransform: "uppercase", color: "#637383" }}>{l as string}{l !== "Messages" && l !== "Awaiting receipt" ? ` · ${pctOf(v as number, dv.total)}%` : ""}</span>
+            </span>
+          ))}
+          {dv.failed > 0 && (
+            <button className="tab" type="button" onClick={() => setTab("failed")} style={{ height: 30, background: "#F6E2E0", color: "#8E2B2B", borderColor: "#E9C3BE" }}>
+              {num(dv.failed)} failed · view
+            </button>
+          )}
+          {!data.webhook && <span style={{ fontSize: 12.5, color: "#9A5530" }}>Delivery receipts aren&apos;t connected yet, so statuses stay at “Sending”.</span>}
+        </section>
+      )}
+
       <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
         <section className="card up" style={{ animationDelay: ".55s", flex: "2 1 520px", minWidth: 0, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 14 }} aria-label="Signatory wall">
           <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center" }}>
@@ -280,7 +311,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
         </div>
         <div style={{ overflowX: "auto" }}>
           <div style={{ minWidth: 820 }}>
-            <div className="grid-row th" style={{ gridTemplateColumns: COLS }}><span>Signatory</span><span>Centre</span><span>Status</span><span>eSigned</span><span style={{ textAlign: "right" }}>Actions</span></div>
+            <div className="grid-row th" style={{ gridTemplateColumns: COLS }}><span>Signatory</span><span>Centre</span><span>Status</span><span>eSigned / invite</span><span style={{ textAlign: "right" }}>Actions</span></div>
             {table === null && <div style={{ padding: 30 }}><Spinner /></div>}
             {rows.map((r) => {
               const signed = r.status === "SIGNED";
@@ -301,7 +332,9 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
                         <span className="mono" style={{ display: "block", fontSize: 12.5 }}>{fmtIST(r.signedAt, false)}</span>
                         {r.geoLat != null && <a className="mono" href={`https://www.google.com/maps?q=${r.geoLat},${r.geoLng}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#637383", marginTop: 3 }}><Icon name="pin" size={12} stroke={2} color="#2E7567" />{fmtGeo(r.geoLat, r.geoLng)}</a>}
                       </>
-                    ) : <span className="mono" style={{ fontSize: 12.5, color: "#8C99A6" }}>{r.linkSentVia ? `Sent on ${r.linkSentVia}` : "Not yet"}</span>}
+                    ) : r.msgStatus ? (
+                      <DeliveryBadge status={r.msgStatus} at={r.msgStatusAt} error={r.msgError} channel={r.msgChannel} />
+                    ) : <span className="mono" style={{ fontSize: 12.5, color: "#8C99A6" }}>{r.linkSentVia ? `Sent on ${r.linkSentVia}` : "Not sent yet"}</span>}
                   </span>
                   <span style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
                     {!signed && <button className="icon-btn" type="button" aria-label="Copy secure link" title="Copy secure link" onClick={() => copy(r)}><Icon name="link" size={16} /></button>}
@@ -340,7 +373,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
   );
 }
 
-const COLS = "minmax(170px, 1.3fr) minmax(220px, 2fr) 112px 150px 168px";
+const COLS = "minmax(170px, 1.3fr) minmax(200px, 1.8fr) 112px 190px 168px";
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 

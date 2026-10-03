@@ -53,6 +53,7 @@ Set `APP_URL` in `.env` to that address so SMS links point to it.
 | `OTP_TTL_MINUTES` | OTP validity (default 10) — keep it equal to what the SMS text promises |
 | `GUPSHUP_API_KEY`, `GUPSHUP_APP_NAME`, `GUPSHUP_SOURCE`, `GUPSHUP_TEMPLATE_ID` | WhatsApp intimation through a Gupshup approved template. When set, **Send links**, **Remind** and the row WhatsApp button send the template directly |
 | `GUPSHUP_TEMPLATE_PARAMS` | Template `{{n}}` values, `|`-separated. Placeholders `{exam}` `{name}` `{centre}` `{link}` `{token}`. Default `{exam}` |
+| `GUPSHUP_WEBHOOK_KEY` | Secret for the delivery-receipt webhook `/api/webhooks/gupshup`. In Gupshup → Webhooks: module WhatsApp, **message events** (sent, delivered, read, failed), header `x-webhook-key: <secret>` |
 | `AUTHKEY_LINK_SID` | Authkey DLT template for the signing-link SMS (variables `name`, `link`). Until set, share links with WhatsApp / Copy link |
 
 ## Deploy on Vercel

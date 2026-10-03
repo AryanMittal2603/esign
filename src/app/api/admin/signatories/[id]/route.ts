@@ -11,7 +11,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const s = await db.signatory.findUnique({
     where: { id },
-    include: { project: true, auditLogs: { orderBy: { createdAt: "asc" } } },
+    include: { project: true, auditLogs: { orderBy: { createdAt: "asc" } }, messages: { orderBy: { createdAt: "desc" }, take: 5 } },
   });
   if (!s) return fail("Not found", 404);
   return ok({
@@ -23,6 +23,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     signedAt: s.signedAt, documentId: s.documentId, otpRef: s.otpRef, signedHash: s.signedHash,
     device: s.signUserAgent ? describeDevice(s.signUserAgent) : null, signIp: s.signIp,
     hasPhoto: !!s.photoKey, hasDraft: !!s.draftKey, hasSigned: !!s.signedKey,
+    messages: s.messages.map((m) => ({ channel: m.channel, status: m.status, error: m.error, at: m.createdAt, sentAt: m.sentAt, deliveredAt: m.deliveredAt, readAt: m.readAt, failedAt: m.failedAt })),
     events: s.auditLogs.map((l) => ({ at: l.createdAt, action: l.action, text: actionText(l.action, l.details), actor: l.actor, ip: l.ip })),
   });
 }

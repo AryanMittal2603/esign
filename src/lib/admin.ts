@@ -103,12 +103,13 @@ export async function statsByProject(projectIds?: string[]) {
 }
 
 /** Signatory list filters shared by the table, the wall and exports. */
-export type ListTab = "all" | "signed" | "pending" | "unsent";
+export type ListTab = "all" | "signed" | "pending" | "unsent" | "failed";
 export function listWhere(projectId: string, tab: ListTab, q: string) {
   const where: Record<string, unknown> = { projectId };
   if (tab === "signed") where.status = "SIGNED";
   else if (tab === "pending") where.status = { not: "SIGNED" };
   else if (tab === "unsent") where.status = "IMPORTED";
+  else if (tab === "failed") { where.msgStatus = "failed"; where.status = { not: "SIGNED" }; }
   const needle = q.trim();
   if (needle) {
     where.OR = [

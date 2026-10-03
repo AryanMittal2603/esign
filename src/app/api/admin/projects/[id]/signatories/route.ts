@@ -35,7 +35,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return row ? ok({ id: row.id }) : fail("Not found", 404);
   }
 
-  const tabs: ListTab[] = ["all", "signed", "pending", "unsent"];
+  const tabs: ListTab[] = ["all", "signed", "pending", "unsent", "failed"];
   const tab = (tabs.includes(url.searchParams.get("tab") as ListTab) ? url.searchParams.get("tab") : "all") as ListTab;
   const q = (url.searchParams.get("q") ?? "").slice(0, 100);
   const size = Math.min(100, Math.max(10, Number(url.searchParams.get("size")) || 50));
@@ -46,7 +46,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     db.signatory.count({ where }),
     db.signatory.findMany({
       where, orderBy: { centreCode: "asc" }, skip: page * size, take: size,
-      select: { id: true, name: true, mobile: true, centreCode: true, centreName: true, status: true, token: true, linkSentAt: true, linkSentVia: true, signedAt: true, geoLat: true, geoLng: true },
+      select: { id: true, name: true, mobile: true, centreCode: true, centreName: true, status: true, token: true, linkSentAt: true, linkSentVia: true, signedAt: true, geoLat: true, geoLng: true, msgChannel: true, msgStatus: true, msgStatusAt: true, msgError: true },
     }),
   ]);
   return ok({

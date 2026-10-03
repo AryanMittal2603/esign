@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin";
 import { clientInfo, fail, ok } from "@/lib/http";
 import { linkSmsAvailable, sendLinkSms, signingLink } from "@/lib/sms";
 import { sendWhatsAppInvite, whatsappReady } from "@/lib/whatsapp";
+import { recordFailedSend, recordSent } from "@/lib/messages";
 
 export const maxDuration = 300;
 
@@ -53,9 +54,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           where: { id: s.id },
           data: { linkSentAt: new Date(), linkSentVia: via, ...(s.status === "IMPORTED" ? { status: "SENT" } : {}) },
         });
+        await recordSent(s, channel === "whatsapp" ? "WHATSAPP" : "SMS", "messageId" in r && typeof r.messageId === "string" ? r.messageId : undefined);
         await audit({ action: "LINK_SENT", actor: "ADMIN", projectId: id, signatoryId: s.id, details: { via, ...("messageId" in r && r.messageId ? { messageId: r.messageId } : {}) }, ...info });
       } else {
         lastError = r.error;
+        await recordFailedSend(s, channel === "whatsapp" ? "WHATSAPP" : "SMS", r.error);
         await audit({ action: "LINK_SEND_FAILED", actor: "SYSTEM", projectId: id, signatoryId: s.id, details: { via, error: r.error }, ...info });
       }
     }
