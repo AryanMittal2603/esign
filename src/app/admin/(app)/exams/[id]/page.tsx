@@ -6,6 +6,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { ErrorBox, Icon, Kicker, Spinner, Words, api, useCountUp, useToast } from "@/components/ui";
 import { customName, examTitle, fmtGeo, fmtIST, fmtTimeIST, type Status } from "@/lib/format";
 import { SignatoryDrawer } from "@/components/admin/SignatoryDrawer";
+import { Impression } from "@/components/admin/Impression";
 import { CSR_META, CsrPill, DELIVERY_META, DeliveryPill, type CsrKey, type DeliveryKey } from "@/components/admin/Pills";
 import { Dropdown } from "@/components/admin/Dropdown";
 
@@ -15,6 +16,7 @@ type Row = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status; link: string;
   linkSentAt: string | null; linkSentVia: string | null; signedAt: string | null; geoLat: number | null; geoLng: number | null;
   msgChannel: string | null; msgStatus: string | null; msgStatusAt: string | null; msgError: string | null;
+  liveness: string | null; impression: string | null;
 };
 type Summary = {
   project: { id: string; name: string; examName: string | null; examDate: string | null; shift: string | null };
@@ -227,9 +229,9 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
           </label>
         </div>
         <div style={{ overflowX: "auto", borderRadius: total > 0 ? 0 : "0 0 16px 16px" }}>
-          <div className="tbl" style={{ minWidth: 980 }}>
+          <div className="tbl" style={{ minWidth: 1110 }}>
             <div className="tbl-row tbl-head" style={{ gridTemplateColumns: COLS }}>
-              <span>Signatory</span><span>Centre</span><span>Message delivery</span><span>CSR status</span><span>eSigned at</span><span style={{ justifyContent: "flex-end" }}>Actions</span>
+              <span>Signatory</span><span>Centre</span><span>Message delivery</span><span>CSR status</span><span>eSigned at</span><span>Facial impression</span><span style={{ justifyContent: "flex-end" }}>Actions</span>
             </div>
             {table === null && <div style={{ padding: 30 }}><Spinner /></div>}
             {rows.map((r) => {
@@ -255,6 +257,14 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
                         <span className="mono" style={{ fontSize: 12, color: "#0F172A", whiteSpace: "nowrap" }}>{fmtIST(r.signedAt, false).replace(",", " ·")}</span>
                         {r.geoLat != null && <a className="mono" href={`https://www.google.com/maps?q=${r.geoLat},${r.geoLng}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10.5, color: "#64748B", marginTop: 3, whiteSpace: "nowrap" }}><Icon name="pin" size={12} stroke={2} color="#22A06B" />{fmtGeo(r.geoLat, r.geoLng)}</a>}
                       </>
+                    ) : <span style={{ color: "#94A3B8" }}>—</span>}
+                  </span>
+                  <span style={{ paddingTop: 8, paddingBottom: 8 }}>
+                    {signed && r.impression ? (
+                      <button type="button" className="row-btn" onClick={() => setSel(r.id)} aria-label={`Facial impression of ${r.name}`} data-tip={r.liveness === "passed" ? "From the live photo · liveness passed" : "From the live photo"} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <Impression grid={r.impression} />
+                        {r.liveness === "passed" && <span className="mono" style={{ fontSize: 10, letterSpacing: ".06em", color: "#17694F", textTransform: "uppercase" }}>Live</span>}
+                      </button>
                     ) : <span style={{ color: "#94A3B8" }}>—</span>}
                   </span>
                   <span style={{ justifyContent: "flex-end", gap: 6 }}>
@@ -298,7 +308,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
   );
 }
 
-const COLS = "minmax(210px, 1.4fr) minmax(200px, 1.6fr) 170px 136px 172px 150px";
+const COLS = "minmax(210px, 1.4fr) minmax(200px, 1.6fr) 170px 136px 172px 128px 150px";
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();

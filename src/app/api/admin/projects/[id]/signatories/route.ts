@@ -3,6 +3,10 @@ import { audit } from "@/lib/audit";
 import { CSR_FILTERS, DELIVERY_FILTERS, createSignatories, listWhere, requireAdmin, validateImport, type CsrFilter, type DeliveryFilter } from "@/lib/admin";
 import { signingLink } from "@/lib/sms";
 import { clientInfo, fail, ok } from "@/lib/http";
+import { getFile } from "@/lib/storage";
+import { encodeImpression } from "@/lib/impression";
+
+export const runtime = "nodejs";
 
 /** Add one signatory by hand. Same checks as CSV import. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -48,11 +52,19 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     db.signatory.count({ where }),
     db.signatory.findMany({
       where, orderBy: { centreCode: "asc" }, skip: page * size, take: size,
-      select: { id: true, name: true, mobile: true, centreCode: true, centreName: true, status: true, token: true, linkSentAt: true, linkSentVia: true, signedAt: true, geoLat: true, geoLng: true, msgChannel: true, msgStatus: true, msgStatusAt: true, msgError: true },
+      select: { id: true, name: true, mobile: true, centreCode: true, centreName: true, status: true, token: true, linkSentAt: true, linkSentVia: true, signedAt: true, geoLat: true, geoLng: true, msgChannel: true, msgStatus: true, msgStatusAt: true, msgError: true, liveness: true, impression: true, photoKey: true },
     }),
   ]);
+  // photos taken before impressions were stored: render once from the photo, then keep
+  await Promise.all(rows.map(async (r) => {
+    if (r.impression || !r.photoKey || !r.signedAt) return;
+    try {
+      const imp = encodeImpression(new Uint8Array(await getFile(r.photoKey)));
+      if (imp) { r.impression = imp; await db.signatory.update({ where: { id: r.id }, data: { impression: imp } }); }
+    } catch { /* photo missing — leave blank */ }
+  }));
   return ok({
     total, page, size,
-    rows: rows.map(({ token, ...r }) => ({ ...r, link: signingLink(token) })),
+    rows: rows.map(({ token, ...r }) => ({ ...r, photoKey: undefined, link: signingLink(token) })),
   });
 }

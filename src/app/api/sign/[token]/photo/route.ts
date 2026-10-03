@@ -3,6 +3,7 @@ import { audit } from "@/lib/audit";
 import { clientInfo, fail, ok, fileResponse } from "@/lib/http";
 import { loadByToken } from "@/lib/signer";
 import { getFile, putFile, removeFile } from "@/lib/storage";
+import { encodeImpression } from "@/lib/impression";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -38,7 +39,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   const at = new Date();
   await db.signatory.update({
     where: { id: s.id },
-    data: { photoKey: key, photoAt: at, faceCheck: face, liveness, geoLat: lat, geoLng: lng, geoAccuracy: Number.isFinite(accuracy) ? accuracy : null },
+    data: { photoKey: key, photoAt: at, faceCheck: face, liveness, impression: encodeImpression(bytes), geoLat: lat, geoLng: lng, geoAccuracy: Number.isFinite(accuracy) ? accuracy : null },
   });
   await audit({
     action: "PHOTO_CAPTURED", actor: "SIGNATORY", projectId: s.projectId, signatoryId: s.id,

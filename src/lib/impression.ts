@@ -96,5 +96,18 @@ export function drawGuilloche(page: PDFPage, x: number, y: number, w: number, h:
   }
 }
 
+/** Compact text form of a small grid for the dashboard table: "20x26:" + one hex digit (0–15) per cell. */
+export const TABLE_GRID = { cols: 20, rows: 26 } as const;
+export function encodeImpression(photoJpeg: Uint8Array): string | null {
+  try {
+    const g = halftoneGrid(photoJpeg, TABLE_GRID.cols, TABLE_GRID.rows);
+    let out = `${g.cols}x${g.rows}:`;
+    for (const d of g.dark) out += Math.round(Math.min(1, Math.max(0, d)) * 15).toString(16);
+    return out;
+  } catch {
+    return null;
+  }
+}
+
 export const IMPRESSION_INK = rgb(0.16, 0.36, 0.66); // passport-style blue
 export const GUILLOCHE_INK = rgb(0.55, 0.7, 0.86);

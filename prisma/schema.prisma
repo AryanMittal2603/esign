@@ -66,6 +66,7 @@ model Signatory {
   photoAt      DateTime?
   faceCheck    String? // "passed" | "unavailable"
   liveness     String? // "passed" (blink + head turn) | "unavailable"
+  impression   String? // facial impression dot grid for the dashboard: "cols x rows:" + one hex digit per cell
   geoLat       Float?
   geoLng       Float?
   geoAccuracy  Float?
