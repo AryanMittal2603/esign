@@ -28,6 +28,8 @@ function Login() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password) { setErr("Enter your email and password."); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) { setErr("That email doesn't look right."); return; }
     setBusy(true); setErr("");
     try {
       await api("/api/admin/login", { method: "POST", json: { email, password } });
@@ -65,16 +67,16 @@ function Login() {
       </div>
 
       <div style={{ flex: "1 1 480px", minWidth: 0, padding: "clamp(14px, 4vw, 56px)", display: "grid", placeItems: "center" }}>
-        <form className="card up" onSubmit={submit} style={{ animationDelay: ".6s", width: "min(100%, 500px)", padding: "clamp(28px, 4vw, 44px) clamp(20px, 4vw, 44px)", display: "flex", flexDirection: "column", gap: 20 }}>
+        <form className="card up" noValidate onSubmit={submit} style={{ animationDelay: ".6s", width: "min(100%, 500px)", padding: "clamp(28px, 4vw, 44px) clamp(20px, 4vw, 44px)", display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <Kicker delay={0.8}>Super Admin</Kicker>
             <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.03em" }}>Sign in</h2>
           </div>
-          <label><span className="label">Email</span><input className="field" type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@examoffice.gov.in" /></label>
+          <label><span className="label">Email</span><input className="field" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@examoffice.gov.in" /></label>
           <label>
             <span className="label">Password</span>
             <span style={{ position: "relative", display: "block" }}>
-              <input className="field" type={show ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" style={{ paddingRight: 52 }} />
+              <input className="field" type={show ? "text" : "password"} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" style={{ paddingRight: 52 }} />
               <button className="icon-btn" type="button" aria-label={show ? "Hide password" : "Show password"} onClick={() => setShow(!show)} style={{ position: "absolute", right: 8, top: 8, border: 0 }}><Icon name="eye" /></button>
             </span>
           </label>

@@ -69,9 +69,9 @@ export function DeliveryPill({ msgStatus, msgStatusAt, msgError, msgChannel, lin
     : <span className="pill-dot" style={{ background: "#CBD5E1" }} />;
   return (
     <span style={{ display: "inline-flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
-      <span className="pill" style={{ color: m.fg, background: m.bg }} title={msgError ?? undefined}>{icon}{m.label}</span>
+      <span className="pill" style={{ color: m.fg, background: m.bg }} data-tip={msgError ?? undefined}>{icon}{m.label}</span>
       {key !== "notsent" && (
-        <span className="mono ellipsis" style={{ fontSize: 10.5, color: key === "failed" ? "#B42318" : "#64748B" }} title={msgError ?? undefined}>
+        <span className="mono ellipsis" style={{ fontSize: 10.5, color: key === "failed" ? "#B42318" : "#64748B" }} data-tip={msgError ?? undefined}>
           {key === "failed" && msgError ? msgError : [via, at ? fmtTimeIST(at).slice(0, 5) : ""].filter(Boolean).join(" · ")}
         </span>
       )}

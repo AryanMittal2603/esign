@@ -3,19 +3,22 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ErrorBox, Icon, Kicker, Spinner, api } from "@/components/ui";
+import { DatePicker, prettyDate as fmtPicked } from "@/components/admin/DatePicker";
 
 export function NewExam({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [f, setF] = useState({ name: "", examName: "", examDate: "", shift: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const prettyDate = f.examDate ? new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${f.examDate}T00:00:00Z`)) : "";
+  const prettyDate = fmtPicked(f.examDate);
   const prettyShift = /^\d+$/.test(f.shift.trim()) ? `Shift ${f.shift.trim()}` : f.shift.trim();
   const defaultName = f.examName.trim() && prettyDate && prettyShift ? `${f.examName.trim()} · ${prettyDate} · ${prettyShift}` : "";
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const missing = [!f.examName.trim() && "exam", !f.examDate && "exam date", !f.shift.trim() && "shift"].filter(Boolean);
+    if (missing.length) { setErr(`Please fill in the ${missing.join(", ")}.`); return; }
     setBusy(true); setErr("");
     try {
       const r = await api<{ id: string }>("/api/admin/projects", { method: "POST", json: f });
@@ -25,17 +28,21 @@ export function NewExam({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <form className="modal" onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="New exam">
+      <form className="modal" noValidate onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="New exam">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Kicker delay={0}>New exam</Kicker>
           <button className="icon-btn" type="button" aria-label="Close" onClick={onClose}><Icon name="close" size={16} stroke={2} /></button>
         </div>
         <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em" }}>One exam, one shift</h2>
-        <label><span className="label">Exam *</span><input className="field" required autoFocus value={f.examName} onChange={set("examName")} placeholder="UPESSC TGT Exam 2026" /></label>
+        <label><span className="label">Exam *</span><input className="field" autoFocus value={f.examName} onChange={set("examName")} placeholder="UPESSC TGT Exam 2026" /></label>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12 }}>
-          <label><span className="label">Exam date *</span><input className="field" type="date" required value={f.examDate} onChange={set("examDate")} /></label>
-          <label><span className="label">Shift *</span><input className="field" required value={f.shift} onChange={set("shift")} placeholder="Shift 1" list="shift-options" /></label>
-          <datalist id="shift-options"><option value="Shift 1" /><option value="Shift 2" /><option value="Shift 3" /></datalist>
+          <div><span className="label">Exam date *</span><DatePicker value={f.examDate} onChange={(v) => setF({ ...f, examDate: v })} /></div>
+          <label><span className="label">Shift *</span><input className="field" value={f.shift} onChange={set("shift")} placeholder="Shift 1" /></label>
+        </div>
+        <div style={{ display: "flex", gap: 6, marginTop: -6, justifyContent: "flex-end" }} aria-label="Quick shift">
+          {["Shift 1", "Shift 2", "Shift 3"].map((x) => (
+            <button key={x} type="button" className={`chip-btn${f.shift.trim().toLowerCase() === x.toLowerCase() ? " on" : ""}`} onClick={() => setF({ ...f, shift: x })}>{x}</button>
+          ))}
         </div>
         <label>
           <span className="label">Display name <span style={{ textTransform: "none", letterSpacing: 0 }}>(optional)</span></span>

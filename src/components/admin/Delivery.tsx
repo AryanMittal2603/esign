@@ -24,7 +24,7 @@ export function DeliveryBadge({ status, at, error, channel }: { status: string |
   };
   const m = map[status] ?? map.submitted;
   return (
-    <span className="mono" title={error ? `${via}: ${error}` : `${via} · ${m.label}${time ? ` at ${time}` : ""}`}
+    <span className="mono" data-tip={error ? `${via}: ${error}` : `${via} · ${m.label}${time ? ` at ${time}` : ""}`}
       style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: m.color, whiteSpace: "nowrap" }}>
       {m.icon} {via} · {m.label}{time && status !== "failed" ? ` ${time}` : ""}
     </span>

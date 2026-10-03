@@ -7,6 +7,9 @@ import { ErrorBox, Icon, Kicker, Spinner, Words, api, useCountUp, useToast } fro
 import { customName, examTitle, fmtGeo, fmtIST, fmtTimeIST, type Status } from "@/lib/format";
 import { SignatoryDrawer } from "@/components/admin/SignatoryDrawer";
 import { CSR_META, CsrPill, DELIVERY_META, DeliveryPill, type CsrKey, type DeliveryKey } from "@/components/admin/Pills";
+import { Dropdown } from "@/components/admin/Dropdown";
+
+const DELIVERY_DOT: Record<DeliveryKey, string> = { notsent: "#CBD5E1", sending: "#94A3B8", sent: "#64748B", delivered: "#14A3B8", read: "#2563EB", failed: "#E5484D" };
 
 type Row = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status; link: string;
@@ -111,17 +114,17 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      {/* header */}
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+      {/* header — its own stacking layer above the animated cards, so the ⋯ menu isn't covered */}
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, position: "relative", zIndex: 30 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: "1 1 340px" }}>
-          <Link href="/admin/exams" className="icon-btn fade" aria-label="Back to exams" title="Back to exams" style={{ width: 38, height: 38, flex: "none" }}><Icon name="back" size={18} stroke={2} /></Link>
+          <Link href="/admin/exams" className="icon-btn fade" aria-label="Back to exams" data-tip="Back to exams" style={{ width: 38, height: 38, flex: "none" }}><Icon name="back" size={18} stroke={2} /></Link>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ fontSize: "clamp(26px, 2.6vw, 34px)", lineHeight: 1.1, fontWeight: 800, letterSpacing: "-0.03em" }}><Words text={examTitle(data.project).split(" · ").map((part) => part.replace(/ /g, "\u00a0")).join(" · ")} start={0.15} step={0.05} /></h1>
             {customName(data.project) && <div className="fade" style={{ animationDelay: ".4s", fontSize: 13, color: "#64748B", marginTop: 4 }}>{customName(data.project)}</div>}
           </div>
         </div>
-        <div className="up" style={{ animationDelay: ".3s", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", justifyContent: "flex-end", position: "relative", flex: "0 1 auto" }}>
-          <span className="live-pill" title={updated ? `Refreshes every 15 seconds · last ${fmtTimeIST(updated)}` : undefined}><span className="live" /> Live{updated ? ` · ${fmtTimeIST(updated).slice(0, 5)}` : ""}</span>
+        <div className="up" style={{ animationDelay: ".3s", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", justifyContent: "flex-end", position: "relative", zIndex: 2, flex: "0 1 auto" }}>
+          <span className="live-pill" data-tip={updated ? `Refreshes every 15 seconds · last ${fmtTimeIST(updated)}` : undefined}><span className="live" /> Live{updated ? ` · ${fmtTimeIST(updated).slice(0, 5)}` : ""}</span>
           <button className="btn btn-line btn-sm" type="button" onClick={() => setAdding(true)}><Icon name="plus" size={16} /> Add signatory</button>
           <Link className="btn btn-line btn-sm" href={`/admin/exams/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
           {canSend && unsent > 0 ? (
@@ -189,22 +192,22 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
       )}
 
       {/* table */}
-      <section className="card up" style={{ animationDelay: ".55s", padding: 0, overflow: "hidden" }} aria-label="Signatories">
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid #E2E8F0" }}>
-          <label className="filter">
-            <span>CSR status</span>
-            <select value={csr} onChange={(e) => setCsr(e.target.value as CsrKey | "")} aria-label="Filter by CSR status">
-              <option value="">All · {num(stats.total)}</option>
-              {(Object.keys(CSR_META) as CsrKey[]).map((key) => <option key={key} value={key}>{CSR_META[key].label} · {num(counts.csr[key])}</option>)}
-            </select>
-          </label>
-          <label className="filter">
-            <span>Message delivery</span>
-            <select value={delivery} onChange={(e) => setDelivery(e.target.value as DeliveryKey | "")} aria-label="Filter by message delivery">
-              <option value="">All · {num(stats.total)}</option>
-              {(Object.keys(DELIVERY_META) as DeliveryKey[]).map((key) => <option key={key} value={key}>{DELIVERY_META[key].label} · {num(dv[key])}</option>)}
-            </select>
-          </label>
+      <section className="card up" style={{ animationDelay: ".55s", padding: 0, position: "relative", zIndex: 1 }} aria-label="Signatories">
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid #E2E8F0", position: "relative", zIndex: 5 }}>
+          <Dropdown
+            label="CSR status"
+            ariaLabel="Filter by CSR status"
+            value={csr}
+            onChange={(v) => setCsr(v as CsrKey | "")}
+            options={[{ value: "", label: "All", count: stats.total }, ...(Object.keys(CSR_META) as CsrKey[]).map((key) => ({ value: key, label: CSR_META[key].label, count: counts.csr[key], dot: CSR_META[key].dot }))]}
+          />
+          <Dropdown
+            label="Message delivery"
+            ariaLabel="Filter by message delivery"
+            value={delivery}
+            onChange={(v) => setDelivery(v as DeliveryKey | "")}
+            options={[{ value: "", label: "All", count: stats.total }, ...(Object.keys(DELIVERY_META) as DeliveryKey[]).map((key) => ({ value: key, label: DELIVERY_META[key].label, count: dv[key], dot: DELIVERY_DOT[key] }))]}
+          />
           {filtered && <button className="link" type="button" style={{ fontSize: 13 }} onClick={() => { setCsr(""); setDelivery(""); setQ(""); }}>Clear filters</button>}
           <div style={{ flex: 1 }} />
           <label style={{ position: "relative", flex: "0 1 300px", minWidth: 220 }}>
@@ -212,7 +215,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
             <input className="field" style={{ height: 38, paddingLeft: 38, fontSize: 14, borderRadius: 10 }} placeholder="Search name, mobile or centre" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search signatories" />
           </label>
         </div>
-        <div style={{ overflowX: "auto" }}>
+        <div style={{ overflowX: "auto", borderRadius: total > 0 ? 0 : "0 0 16px 16px" }}>
           <div className="tbl" style={{ minWidth: 980 }}>
             <div className="tbl-row tbl-head" style={{ gridTemplateColumns: COLS }}>
               <span>Signatory</span><span>Centre</span><span>Message delivery</span><span>CSR status</span><span>eSigned at</span><span style={{ justifyContent: "flex-end" }}>Actions</span>
@@ -231,7 +234,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
                   </span>
                   <span style={{ gap: 10 }}>
                     <span className="mono" style={{ flex: "none", fontSize: 11.5, fontWeight: 600, padding: "3px 7px", borderRadius: 6, background: "#F1F5F9", color: "#334155" }}>{r.centreCode}</span>
-                    <span className="ellipsis" title={r.centreName} style={{ minWidth: 0 }}>{r.centreName}</span>
+                    <span className="ellipsis" data-tip={r.centreName} style={{ minWidth: 0 }}>{r.centreName}</span>
                   </span>
                   <span><DeliveryPill msgStatus={r.msgStatus} msgStatusAt={r.msgStatusAt} msgError={r.msgError} msgChannel={r.msgChannel} linkSentAt={r.linkSentAt} linkSentVia={r.linkSentVia} /></span>
                   <span><CsrPill status={r.status} /></span>
@@ -244,11 +247,11 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
                     ) : <span style={{ color: "#94A3B8" }}>—</span>}
                   </span>
                   <span style={{ justifyContent: "flex-end", gap: 6 }}>
-                    {!signed && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Copy secure link" title="Copy secure link" onClick={() => copy(r)}><Icon name="link" size={16} /></button>}
-                    {!signed && data.sms.linkSms && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Send link by SMS" title="Send link by SMS" onClick={() => send([r.id], undefined, "sms")} disabled={!!progress}><Icon name="sms" size={16} /></button>}
-                    {!signed && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Send invite on WhatsApp" title="Send invite on WhatsApp" onClick={() => whatsapp(r)} disabled={!!progress}><Icon name="whatsapp" size={16} /></button>}
-                    {signed && <a className="icon-btn icon-btn-ghost" aria-label="Download signed PDF" title="Download signed PDF" href={`/api/admin/signatories/${r.id}/file?kind=signed`}><Icon name="download" size={16} /></a>}
-                    <button className="icon-btn icon-btn-ink" type="button" aria-label="Open details" title="Open details" onClick={() => setSel(r.id)}><Icon name="next" size={16} /></button>
+                    {!signed && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Copy secure link" data-tip="Copy secure link" onClick={() => copy(r)}><Icon name="link" size={16} /></button>}
+                    {!signed && data.sms.linkSms && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Send link by SMS" data-tip="Send link by SMS" onClick={() => send([r.id], undefined, "sms")} disabled={!!progress}><Icon name="sms" size={16} /></button>}
+                    {!signed && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Send invite on WhatsApp" data-tip="Send invite on WhatsApp" onClick={() => whatsapp(r)} disabled={!!progress}><Icon name="whatsapp" size={16} /></button>}
+                    {signed && <a className="icon-btn icon-btn-ghost" aria-label="Download signed PDF" data-tip="Download signed PDF" href={`/api/admin/signatories/${r.id}/file?kind=signed`}><Icon name="download" size={16} /></a>}
+                    <button className="icon-btn icon-btn-ink" type="button" aria-label="Open details" data-tip="Open details" onClick={() => setSel(r.id)}><Icon name="next" size={16} /></button>
                   </span>
                 </div>
               );
@@ -261,7 +264,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
           </div>
         </div>
         {total > 0 && (
-          <div className="mono" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 16px", borderTop: "1px solid #E2E8F0", fontSize: 11.5, color: "#64748B", background: "#FAFBFC" }}>
+          <div className="mono" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 16px", borderTop: "1px solid #E2E8F0", fontSize: 11.5, color: "#64748B", background: "#FAFBFC", borderRadius: "0 0 16px 16px" }}>
             <span>{num(page * PAGE + 1)}–{num(Math.min(total, (page + 1) * PAGE))} of {num(total)}{filtered ? ` (filtered from ${num(stats.total)})` : ""}</span>
             {pages > 1 && (
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -296,23 +299,26 @@ function AddSignatory({ projectId, onClose, onAdded }: { projectId: string; onCl
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: k === "mobile" ? e.target.value.replace(/\D/g, "").slice(0, 10) : e.target.value });
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const missing = [!f.name.trim() && "name", !f.mobile && "mobile", !f.centreCode.trim() && "centre code", !f.centreName.trim() && "centre name"].filter(Boolean);
+    if (missing.length) { setErr(`Please fill in the ${missing.join(", ")}.`); return; }
+    if (!/^[6-9]\d{9}$/.test(f.mobile)) { setErr("Mobile must be a 10-digit Indian number."); return; }
     setBusy(true); setErr("");
     try { await api(`/api/admin/projects/${projectId}/signatories`, { method: "POST", json: f }); onAdded(); }
     catch (e) { setErr((e as Error).message); setBusy(false); }
   };
   return (
     <div className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <form className="modal" onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="Add signatory">
+      <form className="modal" noValidate onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="Add signatory">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Kicker delay={0}>Add signatory</Kicker>
           <button className="icon-btn" type="button" aria-label="Close" onClick={onClose}><Icon name="close" size={16} stroke={2} /></button>
         </div>
         <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em" }}>One centre, one signatory</h2>
-        <label><span className="label">Signatory name</span><input className="field" required autoFocus value={f.name} onChange={set("name")} /></label>
-        <label><span className="label">Mobile</span><input className="field" required inputMode="numeric" value={f.mobile} onChange={set("mobile")} placeholder="10-digit number" /></label>
+        <label><span className="label">Signatory name</span><input className="field" autoFocus value={f.name} onChange={set("name")} /></label>
+        <label><span className="label">Mobile</span><input className="field" inputMode="numeric" value={f.mobile} onChange={set("mobile")} placeholder="10-digit number" /></label>
         <div style={{ display: "grid", gridTemplateColumns: "120px minmax(0,1fr)", gap: 12 }}>
-          <label><span className="label">Centre code</span><input className="field" required value={f.centreCode} onChange={set("centreCode")} /></label>
-          <label><span className="label">Centre name</span><input className="field" required value={f.centreName} onChange={set("centreName")} /></label>
+          <label><span className="label">Centre code</span><input className="field" value={f.centreCode} onChange={set("centreCode")} /></label>
+          <label><span className="label">Centre name</span><input className="field" value={f.centreName} onChange={set("centreName")} /></label>
         </div>
         <ErrorBox>{err}</ErrorBox>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
@@ -343,7 +349,7 @@ function DeleteProject({ project, stats, onClose }: { project: { id: string; nam
 
   return (
     <div className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}>
-      <form className="modal" onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="Delete exam">
+      <form className="modal" noValidate onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="Delete exam">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div className="kicker" style={{ color: "#B23A3A" }}>Delete exam</div>
           <button className="icon-btn" type="button" aria-label="Close" onClick={onClose} disabled={busy}><Icon name="close" size={16} stroke={2} /></button>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Chip, Icon, Kicker, Silhouette, Spinner, api } from "@/components/ui";
 import { fmtIST, fmtTimeIST, type Status } from "@/lib/format";
 import { DeliveryBadge } from "@/components/admin/Delivery";
+import { Confirm } from "@/components/admin/Confirm";
 
 type Detail = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status;
@@ -49,11 +50,13 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
     try { const r = await api<{ url: string }>(`/api/admin/signatories/${id}/mark-sent`, { method: "POST" }); window.open(r.url, "_blank", "noopener"); load(); onChanged(); }
     catch (e) { say((e as Error).message, true); }
   };
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const remove = async () => {
-    if (!confirm(`Remove ${d!.name} (centre ${d!.centreCode}) from this exam? Their secure link will stop working.`)) return;
+    setBusy(true);
     try { await api(`/api/admin/signatories/${id}`, { method: "DELETE" }); say("Signatory removed"); onChanged(); onClose(); }
-    catch (e) { say((e as Error).message, true); }
+    catch (e) { say((e as Error).message, true); setBusy(false); setConfirmRemove(false); }
   };
+
 
   return (
     <>
@@ -181,13 +184,24 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <button className="link" type="button" onClick={async () => { await navigator.clipboard.writeText(d.link); say("Secure link copied"); }}>Copy secure link</button>
-                  <button className="link" type="button" style={{ color: "#B23A3A" }} onClick={remove}>Remove</button>
+                  <button className="link" type="button" style={{ color: "#B23A3A" }} onClick={() => setConfirmRemove(true)}>Remove</button>
                 </div>
               </>
             )}
           </>
         )}
       </aside>
+      {confirmRemove && d && (
+        <Confirm
+          danger
+          title={`Remove ${d.name}?`}
+          body={<>Centre <b>{d.centreCode}</b> will be removed from this exam and their secure link will stop working. This can&apos;t be undone.</>}
+          confirmLabel="Remove signatory"
+          busy={busy}
+          onConfirm={remove}
+          onCancel={() => setConfirmRemove(false)}
+        />
+      )}
     </>
   );
 }
