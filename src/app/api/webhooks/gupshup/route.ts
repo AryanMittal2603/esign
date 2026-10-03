@@ -16,7 +16,9 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   if (!body) return new Response("ok"); // Gupshup also pings with empty bodies when validating the URL
   try {
-    await applyWebhook(body);
+    const applied = await applyWebhook(body);
+    // log anything we couldn't match so new payload formats can be supported (no personal data beyond ids)
+    if (!applied) console.warn("[gupshup webhook] unmatched event:", JSON.stringify(body).slice(0, 1500));
   } catch (e) {
     console.error("[gupshup webhook]", e);
   }
