@@ -46,7 +46,7 @@ function Login() {
           <h1 style={{ fontSize: "clamp(44px, 6.4vw, 92px)", lineHeight: 0.94, fontWeight: 800, letterSpacing: "-0.045em" }}>
             <Words text="Every centre." start={0.45} step={0.08} /><br />
             <Words text="Every report." start={0.65} step={0.08} /><br />
-            <span className="w" style={{ animationDelay: ".9s", color: "#2E7567" }}>Signed.</span>
+            <span className="w" style={{ animationDelay: ".9s", color: "#B76A3B" }}>Signed.</span>
           </h1>
           <p className="up" style={{ animationDelay: "1.2s", margin: 0, maxWidth: 520, fontSize: 17, lineHeight: 1.55, color: "#637383" }}>
             Onboard signatories, send secure links, and watch each centre&apos;s Satisfactory Report get signed with face and OTP, live on exam day.

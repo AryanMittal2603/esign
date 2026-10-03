@@ -10,7 +10,7 @@ import { Impression } from "@/components/admin/Impression";
 import { CSR_META, CsrPill, DELIVERY_META, DeliveryPill, type CsrKey, type DeliveryKey } from "@/components/admin/Pills";
 import { Dropdown } from "@/components/admin/Dropdown";
 
-const DELIVERY_DOT: Record<DeliveryKey, string> = { notsent: "#CBD5E1", sending: "#94A3B8", sent: "#64748B", delivered: "#14A3B8", read: "#2563EB", failed: "#E5484D" };
+const DELIVERY_DOT: Record<DeliveryKey, string> = { notsent: "#CBD5E1", sending: "#94A3B8", sent: "#64748B", delivered: "#4A6A94", read: "#1F3A5F", failed: "#A65B30" };
 
 type Row = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status; link: string;
@@ -103,10 +103,10 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
   const dv = counts.delivery;
   const messaged = stats.total - dv.notsent;
   const stages: { label: string; v: number; fg: string; bar: string; note: string; pct?: boolean; also?: { v: number; label: string; fg: string; bar: string } }[] = [
-    { label: "Signatories", v: stats.total, fg: "#0F172A", bar: "#94A3B8", pct: false, note: dv.notsent ? `${num(messaged)} invited · ${num(dv.notsent)} not sent yet` : stats.total ? "everyone invited" : "none added yet" },
-    { label: "Delivered", v: dv.delivered + dv.read, fg: "#0F5F73", bar: "#14A3B8", note: `${num(dv.read)} read · ${num(dv.failed)} failed` },
-    { label: "Opened & uploaded", v: stats.opened, fg: "#1D4ED8", bar: "#3B6FF0", note: `${num(stats.opened - stats.uploaded)} opened, not uploaded yet`, also: { v: stats.uploaded, label: "uploaded", fg: "#8A5A00", bar: "#E0A100" } },
-    { label: "Signed", v: stats.signed, fg: "#17694F", bar: "#22A06B", note: stats.pending ? `${num(stats.pending)} still to sign` : stats.total ? "everyone signed" : "—" },
+    { label: "Signatories", v: stats.total, fg: "#142844", bar: "#142844", pct: false, note: dv.notsent ? `${num(messaged)} invited · ${num(dv.notsent)} not sent yet` : stats.total ? "everyone invited" : "none added yet" },
+    { label: "Delivered", v: dv.delivered + dv.read, fg: "#1F3A5F", bar: "#4A6A94", note: `${num(dv.read)} read · ${num(dv.failed)} failed` },
+    { label: "Opened & uploaded", v: stats.opened, fg: "#2F4F7A", bar: "#A7B9D1", note: `${num(stats.opened - stats.uploaded)} opened, not uploaded yet`, also: { v: stats.uploaded, label: "uploaded", fg: "#A65B30", bar: "#DDAE8E" } },
+    { label: "Signed", v: stats.signed, fg: "#B76A3B", bar: "#B76A3B", note: stats.pending ? `${num(stats.pending)} still to sign` : stats.total ? "everyone signed" : "—" },
   ];
   const rows = table?.rows ?? [];
   const total = table?.total ?? 0;
@@ -154,7 +154,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
                   </>
                 )}
                 <div style={{ height: 1, background: "#E2E8F0", margin: "4px 6px" }} />
-                <button className="menu-item" role="menuitem" type="button" onClick={() => { setMenu(false); setDeleting(true); }} style={{ color: "#B42318" }}><Icon name="trash" size={16} /> Delete exam</button>
+                <button className="menu-item" role="menuitem" type="button" onClick={() => { setMenu(false); setDeleting(true); }} style={{ color: "#8C3B1E" }}><Icon name="trash" size={16} /> Delete exam</button>
               </div>
             </>
           )}
@@ -229,9 +229,9 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
           </label>
         </div>
         <div style={{ overflowX: "auto", borderRadius: total > 0 ? 0 : "0 0 16px 16px" }}>
-          <div className="tbl" style={{ minWidth: 1110 }}>
+          <div className="tbl" style={{ minWidth: 1016 }}>
             <div className="tbl-row tbl-head" style={{ gridTemplateColumns: COLS }}>
-              <span>Signatory</span><span>Centre</span><span>Message delivery</span><span>CSR status</span><span>eSigned at</span><span>Facial impression</span><span style={{ justifyContent: "flex-end" }}>Actions</span>
+              <span>Signatory</span><span>Centre</span><span>Message delivery</span><span>CSR status</span><span>eSigned at</span><span>Impression</span><span style={{ justifyContent: "flex-end" }}>Actions</span>
             </div>
             {table === null && <div style={{ padding: 30 }}><Spinner /></div>}
             {rows.map((r) => {
@@ -255,7 +255,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
                     {signed ? (
                       <>
                         <span className="mono" style={{ fontSize: 12, color: "#0F172A", whiteSpace: "nowrap" }}>{fmtIST(r.signedAt, false).replace(",", " ·")}</span>
-                        {r.geoLat != null && <a className="mono" href={`https://www.google.com/maps?q=${r.geoLat},${r.geoLng}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10.5, color: "#64748B", marginTop: 3, whiteSpace: "nowrap" }}><Icon name="pin" size={12} stroke={2} color="#22A06B" />{fmtGeo(r.geoLat, r.geoLng)}</a>}
+                        {r.geoLat != null && <a className="mono" href={`https://www.google.com/maps?q=${r.geoLat},${r.geoLng}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10.5, color: "#64748B", marginTop: 3, whiteSpace: "nowrap" }}><Icon name="pin" size={12} stroke={2} color="#142844" />{fmtGeo(r.geoLat, r.geoLng)}</a>}
                       </>
                     ) : <span style={{ color: "#94A3B8" }}>—</span>}
                   </span>
@@ -263,7 +263,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
                     {signed && r.impression ? (
                       <button type="button" className="row-btn" onClick={() => setSel(r.id)} aria-label={`Facial impression of ${r.name}`} data-tip={r.liveness === "passed" ? "From the live photo · liveness passed" : "From the live photo"} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                         <Impression grid={r.impression} />
-                        {r.liveness === "passed" && <span className="mono" style={{ fontSize: 10, letterSpacing: ".06em", color: "#17694F", textTransform: "uppercase" }}>Live</span>}
+                        {r.liveness === "passed" && <span className="mono" style={{ fontSize: 10, letterSpacing: ".06em", color: "#142844", textTransform: "uppercase" }}>Live</span>}
                       </button>
                     ) : <span style={{ color: "#94A3B8" }}>—</span>}
                   </span>
@@ -308,7 +308,7 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
   );
 }
 
-const COLS = "minmax(210px, 1.4fr) minmax(200px, 1.6fr) 170px 136px 172px 128px 150px";
+const COLS = "minmax(200px, 1.4fr) minmax(150px, 1.3fr) 150px 120px 158px 104px 132px";
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -372,11 +372,11 @@ function DeleteProject({ project, stats, onClose }: { project: { id: string; nam
     <div className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}>
       <form className="modal" noValidate onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }} aria-label="Delete exam">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div className="kicker" style={{ color: "#B23A3A" }}>Delete exam</div>
+          <div className="kicker" style={{ color: "#8C3B1E" }}>Delete exam</div>
           <button className="icon-btn" type="button" aria-label="Close" onClick={onClose} disabled={busy}><Icon name="close" size={16} stroke={2} /></button>
         </div>
         <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>Delete “{project.name}” for good?</h2>
-        <div style={{ borderRadius: 14, background: "#F6E2E0", color: "#6E1F1F", padding: "14px 16px", fontSize: 14, lineHeight: 1.55 }}>
+        <div style={{ borderRadius: 14, background: "#F7E4DA", color: "#6E3A1C", padding: "14px 16px", fontSize: 14, lineHeight: 1.55 }}>
           This permanently removes, and cannot be undone:
           <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
             <li><b>{stats.total}</b> {stats.total === 1 ? "signatory" : "signatories"} and their secure links</li>
@@ -394,7 +394,7 @@ function DeleteProject({ project, stats, onClose }: { project: { id: string; nam
         <ErrorBox>{err}</ErrorBox>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
           <button className="btn btn-ghost" type="button" onClick={onClose} disabled={busy}>Cancel</button>
-          <button className="btn" type="submit" disabled={!match || busy} style={{ background: "#B23A3A", color: "#fff" }}>{busy ? <><Spinner /> Deleting…</> : <><Icon name="trash" /> Delete permanently</>}</button>
+          <button className="btn" type="submit" disabled={!match || busy} style={{ background: "#8C3B1E", color: "#fff" }}>{busy ? <><Spinner /> Deleting…</> : <><Icon name="trash" /> Delete permanently</>}</button>
         </div>
       </form>
     </div>

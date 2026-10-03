@@ -60,7 +60,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
             const n = i + 1, past = n < stage || (done && n === 4), cur = n === stage && !done;
             return (
               <li key={label} className="up" style={{ animationDelay: `${0.3 + i * 0.06}s`, display: "flex", alignItems: "center", gap: 8, height: 34, padding: "0 14px 0 6px", borderRadius: 999, background: cur ? "#142844" : "#fff", color: cur ? "#fff" : "#142844", fontSize: 13, fontWeight: 600 }}>
-                <span style={{ width: 22, height: 22, borderRadius: "50%", display: "grid", placeItems: "center", background: past ? "#2E7567" : cur ? "#fff" : "#E6ECEC", color: past ? "#fff" : "#142844", font: "600 11px var(--font-mono)" }}>{past ? "✓" : n}</span>{label}
+                <span style={{ width: 22, height: 22, borderRadius: "50%", display: "grid", placeItems: "center", background: past ? "#142844" : cur ? "#fff" : "#E6ECEC", color: past ? "#fff" : "#142844", font: "600 11px var(--font-mono)" }}>{past ? "✓" : n}</span>{label}
               </li>
             );
           })}
@@ -79,7 +79,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
           <Seal size={140} />
           <div style={{ flex: "1 1 320px", minWidth: 0, display: "flex", flexDirection: "column", gap: 14 }}>
             <Kicker delay={0.5}>4 · Imported</Kicker>
-            <h2 style={{ fontSize: "clamp(30px, 3.4vw, 44px)", lineHeight: 1, fontWeight: 800, letterSpacing: "-0.04em" }}><Words text={`${done.added} signatories added.`} start={0.6} accent={1} /></h2>
+            <h2 style={{ fontSize: "clamp(30px, 3.4vw, 44px)", lineHeight: 1, fontWeight: 800, letterSpacing: "-0.04em" }}><Words text={`${done.added} signatories added.`} start={0.6} accent={1} color="#B76A3B" /></h2>
             <p className="up" style={{ animationDelay: "1s", margin: 0, fontSize: 16, lineHeight: 1.55, color: "#637383" }}>A unique secure link was created for every centre{done.skipped ? `. ${done.skipped} rows with problems were skipped` : ""}. Send links from the exam page.</p>
             <div className="up" style={{ animationDelay: "1.2s", display: "flex", flexWrap: "wrap", gap: 10 }}>
               <Link className="btn btn-ink" href={`/admin/exams/${id}`}>Go to exam</Link>
@@ -110,7 +110,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
               <svg width="64" height="76" viewBox="0 0 64 76" fill="none" aria-hidden="true" style={{ flex: "none" }} key={file?.name ?? "none"}>
                 <path d="M8 4h34l16 16v48a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4z" fill="#FFFFFF" stroke="#142844" strokeWidth="2" pathLength={1} className="draw" style={{ animationDelay: ".2s" }} />
                 <path d="M42 4v16h16" stroke="#142844" strokeWidth="2" pathLength={1} className="draw" style={{ animationDelay: ".6s" }} />
-                <rect x="12" y="40" width="40" height="18" rx="4" fill={file ? "#2E7567" : "#A8BBC2"} className="pop" style={{ animationDelay: ".8s", transformBox: "fill-box", transformOrigin: "center" }} />
+                <rect x="12" y="40" width="40" height="18" rx="4" fill={file ? "#142844" : "#A8BBC2"} className="pop" style={{ animationDelay: ".8s", transformBox: "fill-box", transformOrigin: "center" }} />
                 <text x="32" y="53" textAnchor="middle" fill="#FFFFFF" style={{ font: "700 10px var(--font-mono)" }}>CSV</text>
               </svg>
               <div style={{ flex: "1 1 220px", minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
@@ -138,7 +138,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
             <>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
                 <Stat label="Rows checked" v={Math.round(check.total * k)} />
-                <Stat label="Ready to import" v={Math.round(check.valid * k)} color="#2E7567" delay={0.1} />
+                <Stat label="Ready to import" v={Math.round(check.valid * k)} color="#142844" delay={0.1} />
                 <Stat label="Need a fix" v={Math.round(badRows * k)} color={badRows ? "#9A5530" : "#142844"} delay={0.2} border={badRows ? "#E2C4AF" : undefined} />
               </div>
 
@@ -172,7 +172,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                 <section className="card up" style={{ animationDelay: ".55s", padding: 0, overflow: "hidden" }} aria-label="Preview">
                   <div style={{ padding: "18px 20px", borderBottom: "1px solid #E6ECEC", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}>Preview · first {check.preview.length} of {check.valid}</span>
-                    <span className="chip" style={{ background: "#E3F0EC", color: "#2E7567" }}>Checks passed</span>
+                    <span className="chip" style={{ background: "#E6ECF4", color: "#142844" }}>Checks passed</span>
                   </div>
                   <div style={{ overflowX: "auto" }}>
                     <div style={{ minWidth: 760 }}>

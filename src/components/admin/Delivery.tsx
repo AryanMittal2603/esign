@@ -19,8 +19,8 @@ export function DeliveryBadge({ status, at, error, channel }: { status: string |
     enqueued: { label: "Queued", color: "#8C99A6", icon: <ClockIcon /> },
     sent: { label: "Sent", color: "#637383", icon: ticks(1, "#637383") },
     delivered: { label: "Delivered", color: "#637383", icon: ticks(2, "#637383") },
-    read: { label: "Read", color: "#2557DA", icon: ticks(2, "#2557DA") },
-    failed: { label: "Failed", color: "#B23A3A", icon: <span style={{ fontWeight: 800 }}>!</span> },
+    read: { label: "Read", color: "#2F4F7A", icon: ticks(2, "#2F4F7A") },
+    failed: { label: "Failed", color: "#8C3B1E", icon: <span style={{ fontWeight: 800 }}>!</span> },
   };
   const m = map[status] ?? map.submitted;
   return (

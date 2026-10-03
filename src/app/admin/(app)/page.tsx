@@ -1,5 +1,7 @@
 "use client";
 
+import { Guilloche } from "@/components/admin/Guilloche";
+import { STAGE } from "@/components/admin/palette";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,11 +14,11 @@ const num = (n: number) => n.toLocaleString("en-IN");
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 const SEGMENTS = [
-  { key: "signed", label: "Signed", color: "#22A06B" },
-  { key: "uploaded", label: "Uploaded", color: "#E0A100" },
-  { key: "opened", label: "Opened", color: "#3B6FF0" },
-  { key: "invited", label: "Invited, not opened", color: "#94A3B8" },
-  { key: "notsent", label: "Not invited", color: "#E2E8F0" },
+  { key: "signed", label: "Signed", color: STAGE.signed, dark: "#CB8A60" },
+  { key: "uploaded", label: "Uploaded", color: STAGE.uploaded, dark: "#EBCDB8" },
+  { key: "opened", label: "Opened", color: STAGE.opened, dark: "#A7B9D1" },
+  { key: "invited", label: "Invited, not opened", color: STAGE.invited, dark: "#FFFFFF4D" },
+  { key: "notsent", label: "Not invited", color: STAGE.notsent, dark: "#FFFFFF1A" },
 ] as const;
 
 function segmentsOf(s: Exam["stats"]) {
@@ -29,12 +31,12 @@ function segmentsOf(s: Exam["stats"]) {
   } as Record<(typeof SEGMENTS)[number]["key"], number>;
 }
 
-function StackBar({ s, height = 8 }: { s: Exam["stats"]; height?: number }) {
+function StackBar({ s, height = 8, dark = false }: { s: Exam["stats"]; height?: number; dark?: boolean }) {
   const seg = segmentsOf(s);
   return (
-    <span style={{ height, display: "flex", background: "#EEF2F6", borderRadius: height, overflow: "hidden", gap: 2 }} aria-hidden="true">
+    <span style={{ height, display: "flex", background: dark ? "#FFFFFF14" : "#EEF2F7", borderRadius: height, overflow: "hidden", gap: 2 }} aria-hidden="true">
       {SEGMENTS.filter((g) => g.key !== "notsent").map((g) => seg[g.key] > 0 && (
-        <span key={g.key} className="grow" style={{ width: `${(seg[g.key] / (s.total || 1)) * 100}%`, background: g.color }} />
+        <span key={g.key} className="grow" style={{ width: `${(seg[g.key] / (s.total || 1)) * 100}%`, background: dark ? g.dark : g.color, borderRadius: height }} />
       ))}
     </span>
   );
@@ -83,36 +85,45 @@ export default function Overview() {
       ) : (
         <>
           {/* overall progress */}
-          <section className="card up" style={{ animationDelay: ".35s", padding: 0, display: "flex", flexWrap: "wrap", overflow: "hidden" }} aria-label="Overall progress">
-            <div style={{ flex: "2 1 440px", padding: "22px 24px", display: "flex", gap: 24, alignItems: "center", minWidth: 0 }}>
-              <Ring pct={pct(tot.signed, tot.total) * k} size={112} />
-              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-                <div>
-                  <div className="mono" style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "#64748B" }}>CSRs signed, all exams</div>
-                  <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.035em", marginTop: 4 }}>{num(Math.round(tot.signed * k))} <span style={{ fontSize: 18, color: "#94A3B8", fontWeight: 700 }}>of {num(tot.total)}</span></div>
-                </div>
-                <StackBar s={tot} height={10} />
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px" }}>
-                  {SEGMENTS.map((g) => (
-                    <span key={g.key} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "#475569" }}>
-                      <span style={{ width: 9, height: 9, borderRadius: 3, background: g.color, border: g.key === "notsent" ? "1px solid #CBD5E1" : 0 }} />
-                      {g.label} <b style={{ color: "#0F172A" }}>{num(seg[g.key])}</b>
-                    </span>
-                  ))}
+          <section className="up hero-grid" style={{ animationDelay: ".35s" }} aria-label="Overall progress">
+            <div className="hero-panel">
+              <Guilloche />
+              <div style={{ position: "relative", display: "flex", gap: 28, alignItems: "center", flexWrap: "wrap" }}>
+                <Ring pct={pct(tot.signed, tot.total) * k} size={128} dark />
+                <div style={{ flex: "1 1 260px", minWidth: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div>
+                    <div className="mono" style={{ fontSize: 10.5, letterSpacing: ".14em", textTransform: "uppercase", color: "#A7B9D1" }}>CSRs signed · all exams</div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6 }}>
+                      <span style={{ fontSize: 46, fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 1, color: "#FFFFFF" }}>{num(Math.round(tot.signed * k))}</span>
+                      <span style={{ fontSize: 18, color: "#7590B4", fontWeight: 700 }}>of {num(tot.total)}</span>
+                    </div>
+                  </div>
+                  <StackBar s={tot} height={10} dark />
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 18px" }}>
+                    {SEGMENTS.map((g) => (
+                      <span key={g.key} style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "#CDD8E6" }}>
+                        <span style={{ width: 9, height: 9, borderRadius: 3, background: g.dark, boxShadow: g.key === "notsent" ? "inset 0 0 0 1px #FFFFFF33" : undefined }} />
+                        {g.label} <b style={{ color: "#FFFFFF" }}>{num(seg[g.key])}</b>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-            <div style={{ flex: "1 1 280px", display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", borderLeft: "1px solid #EEF2F6" }}>
+            <div className="hero-stats">
               {[
-                { label: "Active exams", v: active, sub: `${complete} complete`, fg: "#0F172A" },
-                { label: "Signatories", v: tot.total, sub: `${num(tot.sent)} invited`, fg: "#0F172A" },
-                { label: "Delivered", v: tot.delivered, sub: `${pct(tot.delivered, tot.sent)}% of invites`, fg: "#0F5F73" },
-                { label: "Pending", v: tot.pending, sub: tot.pending ? "still to sign" : "nothing pending", fg: "#9A5530" },
-              ].map((x, i) => (
-                <div key={x.label} style={{ padding: "18px 20px", borderTop: i > 1 ? "1px solid #EEF2F6" : 0, borderLeft: i % 2 ? "1px solid #EEF2F6" : 0 }}>
-                  <div className="mono" style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "#64748B" }}>{x.label}</div>
-                  <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.035em", color: x.fg, marginTop: 6 }}>{num(Math.round(x.v * k))}</div>
-                  <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>{x.sub}</div>
+                { label: "Active exams", v: active, sub: `${num(complete)} complete`, icon: "folder", tone: "navy" },
+                { label: "Signatories", v: tot.total, sub: `${num(tot.sent)} invited`, icon: "users", tone: "navy" },
+                { label: "Delivered", v: tot.delivered, sub: `${pct(tot.delivered, tot.sent)}% of invites`, icon: "send", tone: "navy" },
+                { label: "Pending", v: tot.pending, sub: tot.pending ? "still to sign" : "nothing pending", icon: "pen", tone: "copper" },
+              ].map((x) => (
+                <div key={x.label} className="card stat-tile">
+                  <span className={`stat-ico ${x.tone}`}><Icon name={x.icon as "folder"} size={18} /></span>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="mono" style={{ fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", color: "#7590B4" }}>{x.label}</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.05, color: x.tone === "copper" ? "#A65B30" : "#142844", marginTop: 4 }}>{num(Math.round(x.v * k))}</div>
+                    <div style={{ fontSize: 12, color: "#4A6A94", marginTop: 3 }}>{x.sub}</div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -149,9 +160,9 @@ export default function Overview() {
                       </span>
                       <span style={{ gap: 10 }}><Ring pct={pct(s.signed, s.total) * k} size={36} /><span className="mono" style={{ fontSize: 12.5 }}>{num(s.signed)}/{num(s.total)}</span></span>
                       <span>
-                        {s.total === 0 ? <span className="pill" style={{ background: "#F1F5F9", color: "#475569" }}><span className="pill-dot" style={{ background: "#94A3B8" }} />No signatories</span>
-                          : s.pending === 0 ? <span className="pill" style={{ background: "#E4F4EC", color: "#17694F" }}><span className="pill-dot" style={{ background: "#22A06B" }} />Complete</span>
-                          : <span className="pill" style={{ background: "#FFF4DB", color: "#8A5A00" }}><span className="pill-dot" style={{ background: "#E0A100" }} />{num(s.pending)} pending</span>}
+                        {s.total === 0 ? <span className="pill" style={{ background: "#F3F6FA", color: "#7590B4" }}><span className="pill-dot" style={{ background: "#CDD8E6" }} />No signatories</span>
+                          : s.pending === 0 ? <span className="pill" style={{ background: "#B76A3B", color: "#FFFFFF" }}><Icon name="check" size={13} stroke={3} />Complete</span>
+                          : <span className="pill" style={{ background: "#E6ECF4", color: "#1F3A5F" }}><span className="pill-dot pulse" style={{ background: "#4A6A94" }} />{num(s.pending)} pending</span>}
                       </span>
                     </div>
                   );

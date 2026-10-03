@@ -1,8 +1,9 @@
 "use client";
 
+import { CsrPill } from "./Pills";
 import { Impression } from "./Impression";
 import { useCallback, useEffect, useState } from "react";
-import { Chip, Icon, Kicker, Silhouette, Spinner, api } from "@/components/ui";
+import { Icon, Kicker, Silhouette, Spinner, api } from "@/components/ui";
 import { fmtIST, fmtTimeIST, type Status } from "@/lib/format";
 import { DeliveryBadge } from "@/components/admin/Delivery";
 import { Confirm } from "@/components/admin/Confirm";
@@ -70,7 +71,7 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
         {!d ? <Spinner /> : (
           <>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <span className="pop" style={{ animationDelay: ".1s", width: 76, height: 96, borderRadius: 16, background: "#2A4A78", flex: "none", overflow: "hidden", display: "grid", placeItems: "end center", boxShadow: `0 0 0 3px ${signed ? "#2E7567" : "#D4DEE0"}` }}>
+              <span className="pop" style={{ animationDelay: ".1s", width: 76, height: 96, borderRadius: 16, background: "#2A4A78", flex: "none", overflow: "hidden", display: "grid", placeItems: "end center", boxShadow: `0 0 0 3px ${signed ? "#142844" : "#D4DEE0"}` }}>
                 {d.hasPhoto ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={`/api/admin/signatories/${id}/file?kind=photo`} alt={`Live photo of ${d.name}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -84,7 +85,7 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
               <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                 <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1 }}>{d.name}</span>
                 <span className="mono" style={{ fontSize: 12, color: "#637383" }}>+91 {d.mobile}</span>
-                <span><Chip status={d.status} /></span>
+                <span><CsrPill status={d.status} /></span>
               </div>
             </div>
             <div style={{ borderRadius: 14, background: "#F3F6F4", padding: "14px 16px", fontSize: 14, lineHeight: 1.45 }}><b>{d.centreName}</b><br /><span style={{ color: "#637383" }}>{d.project.name}</span></div>
@@ -111,8 +112,8 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
                   return (
                     <div key={m.label} className="up" style={{ animationDelay: `${0.15 + j * 0.06}s`, display: "flex", gap: 14 }}>
                       <span style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 14, flex: "none" }}>
-                        <span style={{ width: 12, height: 12, borderRadius: "50%", marginTop: 3, background: done ? (ts ? "#22A06B" : "#fff") : "#fff", border: `2px solid ${done ? "#22A06B" : next ? "#B76A3B" : "#CBD5E1"}` }} />
-                        {j < MILESTONES.length - 1 && <span style={{ flex: 1, width: 2, minHeight: 18, background: j < lastDone ? "#22A06B" : "#E2E8F0" }} />}
+                        <span style={{ width: 12, height: 12, borderRadius: "50%", marginTop: 3, background: done ? (ts ? "#142844" : "#fff") : "#fff", border: `2px solid ${done ? "#142844" : next ? "#B76A3B" : "#CBD5E1"}` }} />
+                        {j < MILESTONES.length - 1 && <span style={{ flex: 1, width: 2, minHeight: 18, background: j < lastDone ? "#142844" : "#E2E8F0" }} />}
                       </span>
                       <span style={{ paddingBottom: 14 }}>
                         <span style={{ display: "block", fontWeight: 700, fontSize: 14, color: done || next ? "#0F172A" : "#94A3B8" }}>{m.label}</span>
@@ -138,8 +139,8 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
                     <div className="mono" style={{ display: "flex", flexWrap: "wrap", gap: "2px 14px", fontSize: 11, color: "#637383" }}>
                       {m.sentAt && <span>Sent {fmtTimeIST(m.sentAt)}</span>}
                       {m.deliveredAt && <span>Delivered {fmtTimeIST(m.deliveredAt)}</span>}
-                      {m.readAt && <span style={{ color: "#2557DA" }}>Read {fmtTimeIST(m.readAt)}</span>}
-                      {m.status === "failed" && <span style={{ color: "#B23A3A" }}>{m.error ?? "Delivery failed"}</span>}
+                      {m.readAt && <span style={{ color: "#2F4F7A" }}>Read {fmtTimeIST(m.readAt)}</span>}
+                      {m.status === "failed" && <span style={{ color: "#8C3B1E" }}>{m.error ?? "Delivery failed"}</span>}
                       {!m.sentAt && m.status !== "failed" && m.channel === "WHATSAPP" && <span>Waiting for delivery receipt</span>}
                     </div>
                   </div>
@@ -151,7 +152,7 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
               <a href={`https://www.google.com/maps?q=${d.geo.lat},${d.geo.lng}`} target="_blank" rel="noopener noreferrer" style={{ position: "relative", height: 130, borderRadius: 16, overflow: "hidden", backgroundColor: "#E8F1F3", backgroundImage: "linear-gradient(#D4E3E8 1px, transparent 1px), linear-gradient(90deg, #D4E3E8 1px, transparent 1px)", backgroundSize: "22px 22px", display: "block" }} aria-label="Open location in Google Maps">
                 <span style={{ position: "absolute", left: 0, right: 0, top: "58%", height: 10, background: "#fff", transform: "rotate(-8deg)" }} />
                 <span style={{ position: "absolute", top: 0, bottom: 0, left: "38%", width: 8, background: "#fff", transform: "rotate(14deg)" }} />
-                <span style={{ position: "absolute", left: "50%", top: "46%", width: 14, height: 14, margin: "-7px 0 0 -7px", borderRadius: "50%", background: "#2E7567", boxShadow: "0 0 0 4px #fff" }} />
+                <span style={{ position: "absolute", left: "50%", top: "46%", width: 14, height: 14, margin: "-7px 0 0 -7px", borderRadius: "50%", background: "#142844", boxShadow: "0 0 0 4px #fff" }} />
                 <span className="live" style={{ position: "absolute", left: "50%", top: "46%", margin: "-4px 0 0 -4px" }} />
                 <span className="mono" style={{ position: "absolute", left: 12, bottom: 10, fontSize: 11, background: "#fff", padding: "4px 8px", borderRadius: 8, color: "#142844" }}>{d.geo.lat.toFixed(5)}, {d.geo.lng.toFixed(5)}{d.geo.accuracy ? ` · ±${Math.round(d.geo.accuracy)} m` : ""}</span>
               </a>
@@ -190,7 +191,7 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <button className="link" type="button" onClick={async () => { await navigator.clipboard.writeText(d.link); say("Secure link copied"); }}>Copy secure link</button>
-                  <button className="link" type="button" style={{ color: "#B23A3A" }} onClick={() => setConfirmRemove(true)}>Remove</button>
+                  <button className="link" type="button" style={{ color: "#8C3B1E" }} onClick={() => setConfirmRemove(true)}>Remove</button>
                 </div>
               </>
             )}
