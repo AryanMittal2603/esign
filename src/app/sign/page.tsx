@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Brand, ErrorBox, Icon, Keypad, Kicker, OtpInput, Spinner, Words, api } from "@/components/ui";
-import { HowItWorks, LangButton, SignerApp } from "@/components/sign/Intro";
+import { LangButton, SignerApp } from "@/components/sign/Intro";
 import { Rosette } from "@/components/sign/Rosette";
 import { useI18n } from "@/lib/i18n";
 import { fmtIST, type Status } from "@/lib/format";
@@ -76,7 +76,6 @@ function DirectAccess() {
               </span>
             </label>
             <ErrorBox>{err}</ErrorBox>
-            <HowItWorks delay={1.2} />
             <div style={{ flex: 1 }} />
             <Keypad value={mobile} onChange={setMobile} max={10} disabled={busy} clearLabel={t("keypad.clear")} />
             <button className="btn btn-ink up" type="button" style={{ animationDelay: "1.3s", width: "100%", minHeight: 54 }} disabled={mobile.length !== 10 || busy} onClick={send}>
