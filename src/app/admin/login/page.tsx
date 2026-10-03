@@ -64,8 +64,8 @@ function Login() {
         </div>
       </div>
 
-      <div style={{ flex: "1 1 400px", minWidth: 0, padding: "clamp(20px, 4vw, 56px)", display: "grid", placeItems: "center" }}>
-        <form className="card up" onSubmit={submit} style={{ animationDelay: ".6s", width: "min(100%, 420px)", padding: "36px 32px", display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ flex: "1 1 480px", minWidth: 0, padding: "clamp(14px, 4vw, 56px)", display: "grid", placeItems: "center" }}>
+        <form className="card up" onSubmit={submit} style={{ animationDelay: ".6s", width: "min(100%, 500px)", padding: "clamp(28px, 4vw, 44px) clamp(20px, 4vw, 44px)", display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <Kicker delay={0.8}>Super Admin</Kicker>
             <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.03em" }}>Sign in</h2>

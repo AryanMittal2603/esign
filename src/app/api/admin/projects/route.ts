@@ -6,11 +6,16 @@ import { clientInfo, fail, ok } from "@/lib/http";
 export async function GET() {
   if (!(await requireAdmin())) return fail("Sign in first", 401);
   const projects = await db.project.findMany({ orderBy: { createdAt: "desc" } });
-  const statsOf = await statsByProject(projects.map((p) => p.id));
+  const ids = projects.map((p) => p.id);
+  const [statsOf, deliveredRows] = await Promise.all([
+    statsByProject(ids),
+    db.signatory.groupBy({ by: ["projectId"], where: { projectId: { in: ids }, msgStatus: { in: ["delivered", "read"] } }, _count: { _all: true } }),
+  ]);
+  const delivered = new Map(deliveredRows.map((r) => [r.projectId, r._count._all]));
   return ok({
     projects: projects.map((p) => ({
       id: p.id, name: p.name, examName: p.examName, examDate: p.examDate, shift: p.shift, createdAt: p.createdAt,
-      stats: statsOf(p.id),
+      stats: { ...statsOf(p.id), delivered: delivered.get(p.id) ?? 0 },
     })),
   });
 }
@@ -31,7 +36,7 @@ function normaliseShift(v: string): string {
   return m ? `Shift ${m[1]}` : v;
 }
 
-/** Exam, date and shift are required; together they must be unique. Name is optional. */
+/** Exam, date and shift are required; together they must be unique. Name is optional (defaults to "Exam · Date · Shift"). */
 export async function POST(req: Request) {
   if (!(await requireAdmin())) return fail("Sign in first", 401);
   const body = await req.json().catch(() => ({}));
@@ -51,7 +56,7 @@ export async function POST(req: Request) {
   });
   if (clash) return fail(`${clash.examName} on ${clash.examDate}, ${clash.shift} already exists (“${clash.name}”).`, 409);
 
-  const name = clean(body.name) || `${examName} · ${shift}`;
+  const name = clean(body.name) || `${examName} · ${examDate} · ${shift}`;
   const p = await db.project.create({
     data: { name, examName, examDate, shift, description: clean(body.description) || null },
   });

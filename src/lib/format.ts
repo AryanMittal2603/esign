@@ -47,3 +47,15 @@ export const STATUS_META = {
 } as const;
 
 export type Status = keyof typeof STATUS_META;
+
+/** Exam heading: "Exam · Date · Shift" (falls back to the stored display name). */
+export function examTitle(p: { name: string; examName?: string | null; examDate?: string | null; shift?: string | null }): string {
+  const parts = [p.examName, p.examDate, p.shift].filter((x): x is string => !!x && x.trim().length > 0);
+  return parts.length ? parts.join(" · ") : p.name;
+}
+
+/** A display name the admin actually typed (not one of the automatic defaults). */
+export function customName(p: { name: string; examName?: string | null; examDate?: string | null; shift?: string | null }): string | null {
+  const auto = [examTitle(p), [p.examName, p.shift].filter(Boolean).join(" · ")];
+  return auto.includes(p.name) ? null : p.name;
+}

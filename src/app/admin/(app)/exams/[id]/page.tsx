@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
 import { ErrorBox, Icon, Kicker, Spinner, Words, api, useCountUp, useToast } from "@/components/ui";
-import { fmtGeo, fmtIST, fmtTimeIST, type Status } from "@/lib/format";
+import { customName, examTitle, fmtGeo, fmtIST, fmtTimeIST, type Status } from "@/lib/format";
 import { SignatoryDrawer } from "@/components/admin/SignatoryDrawer";
 import { CSR_META, CsrPill, DELIVERY_META, DeliveryPill, type CsrKey, type DeliveryKey } from "@/components/admin/Pills";
 
@@ -95,7 +95,6 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
   const unsent = stats.byStatus.IMPORTED ?? 0;
   const canSend = data.sms.whatsapp || data.sms.linkSms;
   const zipParts = Math.ceil(stats.signed / ZIP_PART);
-  const facts = ([["Exam", data.project.examName], ["Date", data.project.examDate], ["Shift", data.project.shift]] as const).filter(([, v]) => v) as [string, string][];
   const dv = counts.delivery;
   const messaged = stats.total - dv.notsent;
   const stages = [
@@ -113,51 +112,48 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       {/* header */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <div className="mono fade" style={{ fontSize: 12, color: "#64748B", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <span><Link href="/admin/exams" style={{ color: "#64748B" }}>Exams</Link> / <span style={{ color: "#0F172A" }}>{data.project.name}</span></span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#17694F" }}><span className="live" /> Live · updated {updated ? fmtTimeIST(updated) : ""}</span>
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-          <h1 style={{ fontSize: "clamp(28px, 3vw, 38px)", lineHeight: 1.05, fontWeight: 800, letterSpacing: "-0.035em", minWidth: 0 }}><Words text={data.project.name} start={0.2} /></h1>
-          <div className="up" style={{ animationDelay: ".4s", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", position: "relative" }}>
-            <button className="btn btn-line btn-sm" type="button" onClick={() => setAdding(true)}><Icon name="plus" size={16} /> Add signatory</button>
-            <Link className="btn btn-line btn-sm" href={`/admin/exams/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
-            {canSend && unsent > 0 ? (
-              <button className="btn btn-ink btn-sm" type="button" disabled={!!progress} onClick={() => send(null, "unsent")}><Icon name={data.sms.whatsapp ? "whatsapp" : "send"} size={16} /> Send {num(unsent)} {plural(unsent, "invite", "invites")}</button>
-            ) : canSend && stats.pending > 0 && stats.sent > 0 ? (
-              <button className="btn btn-ink btn-sm" type="button" disabled={!!progress} onClick={() => send(null, "pending")}><Icon name={data.sms.whatsapp ? "whatsapp" : "send"} size={16} /> Remind {num(stats.pending)} pending</button>
-            ) : null}
-            <button className="icon-btn" type="button" aria-label="More actions" aria-expanded={menu} onClick={() => setMenu(!menu)} style={{ width: 38, height: 38 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
-            </button>
-            {menu && (
-              <>
-                <div onClick={() => setMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} aria-hidden="true" />
-                <div className="card pop" role="menu" style={{ position: "absolute", right: 0, top: 46, zIndex: 41, width: 260, padding: 6, display: "flex", flexDirection: "column", maxHeight: 360, overflowY: "auto" }}>
-                  <a className="menu-item" role="menuitem" href={`/api/admin/projects/${id}/export`} onClick={() => setMenu(false)}><Icon name="sheet" size={16} /> Export Excel</a>
-                  {zipParts <= 1 ? (
-                    <a className="menu-item" role="menuitem" href={stats.signed ? `/api/admin/projects/${id}/zip` : undefined} aria-disabled={!stats.signed} onClick={() => setMenu(false)} style={stats.signed ? undefined : { opacity: 0.4, pointerEvents: "none" }}><Icon name="download" size={16} /> Signed CSRs (ZIP) · {num(stats.signed)}</a>
-                  ) : (
-                    <>
-                      <div className="mono" style={{ padding: "8px 12px 4px", fontSize: 10.5, letterSpacing: ".1em", textTransform: "uppercase", color: "#64748B" }}>Signed CSRs · {zipParts} ZIP parts</div>
-                      {Array.from({ length: zipParts }, (_, i) => (
-                        <a key={i} className="menu-item" role="menuitem" href={`/api/admin/projects/${id}/zip?part=${i + 1}`} style={{ padding: "8px 12px" }}>
-                          <Icon name="download" size={15} /> Part {i + 1} <span className="mono" style={{ marginLeft: "auto", fontSize: 11, color: "#64748B" }}>{num(i * ZIP_PART + 1)}–{num(Math.min(stats.signed, (i + 1) * ZIP_PART))}</span>
-                        </a>
-                      ))}
-                    </>
-                  )}
-                  <div style={{ height: 1, background: "#E2E8F0", margin: "4px 6px" }} />
-                  <button className="menu-item" role="menuitem" type="button" onClick={() => { setMenu(false); setDeleting(true); }} style={{ color: "#B42318" }}><Icon name="trash" size={16} /> Delete exam</button>
-                </div>
-              </>
-            )}
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: "1 1 340px" }}>
+          <Link href="/admin/exams" className="icon-btn fade" aria-label="Back to exams" title="Back to exams" style={{ width: 38, height: 38, flex: "none" }}><Icon name="back" size={18} stroke={2} /></Link>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: "clamp(26px, 2.6vw, 34px)", lineHeight: 1.1, fontWeight: 800, letterSpacing: "-0.03em" }}><Words text={examTitle(data.project).split(" · ").map((part) => part.replace(/ /g, "\u00a0")).join(" · ")} start={0.15} step={0.05} /></h1>
+            {customName(data.project) && <div className="fade" style={{ animationDelay: ".4s", fontSize: 13, color: "#64748B", marginTop: 4 }}>{customName(data.project)}</div>}
           </div>
         </div>
-        <div className="up" style={{ animationDelay: ".35s", display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {facts.map(([k2, v]) => <span key={k2} className="fact"><span>{k2}</span>{v}</span>)}
-          <span className="fact"><span>Signatories</span>{num(stats.total)}</span>
+        <div className="up" style={{ animationDelay: ".3s", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", justifyContent: "flex-end", position: "relative", flex: "0 1 auto" }}>
+          <span className="live-pill" title={updated ? `Refreshes every 15 seconds · last ${fmtTimeIST(updated)}` : undefined}><span className="live" /> Live{updated ? ` · ${fmtTimeIST(updated).slice(0, 5)}` : ""}</span>
+          <button className="btn btn-line btn-sm" type="button" onClick={() => setAdding(true)}><Icon name="plus" size={16} /> Add signatory</button>
+          <Link className="btn btn-line btn-sm" href={`/admin/exams/${id}/import`}><Icon name="upload" size={16} /> Import CSV</Link>
+          {canSend && unsent > 0 ? (
+            <button className="btn btn-ink btn-sm" type="button" disabled={!!progress} onClick={() => send(null, "unsent")}><Icon name={data.sms.whatsapp ? "whatsapp" : "send"} size={16} /> Send {num(unsent)} {plural(unsent, "invite", "invites")}</button>
+          ) : canSend && stats.pending > 0 && stats.sent > 0 ? (
+            <button className="btn btn-ink btn-sm" type="button" disabled={!!progress} onClick={() => send(null, "pending")}><Icon name={data.sms.whatsapp ? "whatsapp" : "send"} size={16} /> Remind {num(stats.pending)} pending</button>
+          ) : null}
+          <button className="icon-btn" type="button" aria-label="More actions" aria-expanded={menu} onClick={() => setMenu(!menu)} style={{ width: 38, height: 38 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+          </button>
+          {menu && (
+            <>
+              <div onClick={() => setMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} aria-hidden="true" />
+              <div className="card pop" role="menu" style={{ position: "absolute", right: 0, top: 46, zIndex: 41, width: 260, padding: 6, display: "flex", flexDirection: "column", maxHeight: 360, overflowY: "auto" }}>
+                <a className="menu-item" role="menuitem" href={`/api/admin/projects/${id}/export`} onClick={() => setMenu(false)}><Icon name="sheet" size={16} /> Export Excel</a>
+                {zipParts <= 1 ? (
+                  <a className="menu-item" role="menuitem" href={stats.signed ? `/api/admin/projects/${id}/zip` : undefined} aria-disabled={!stats.signed} onClick={() => setMenu(false)} style={stats.signed ? undefined : { opacity: 0.4, pointerEvents: "none" }}><Icon name="download" size={16} /> Signed CSRs (ZIP) · {num(stats.signed)}</a>
+                ) : (
+                  <>
+                    <div className="mono" style={{ padding: "8px 12px 4px", fontSize: 10.5, letterSpacing: ".1em", textTransform: "uppercase", color: "#64748B" }}>Signed CSRs · {zipParts} ZIP parts</div>
+                    {Array.from({ length: zipParts }, (_, i) => (
+                      <a key={i} className="menu-item" role="menuitem" href={`/api/admin/projects/${id}/zip?part=${i + 1}`} style={{ padding: "8px 12px" }}>
+                        <Icon name="download" size={15} /> Part {i + 1} <span className="mono" style={{ marginLeft: "auto", fontSize: 11, color: "#64748B" }}>{num(i * ZIP_PART + 1)}–{num(Math.min(stats.signed, (i + 1) * ZIP_PART))}</span>
+                      </a>
+                    ))}
+                  </>
+                )}
+                <div style={{ height: 1, background: "#E2E8F0", margin: "4px 6px" }} />
+                <button className="menu-item" role="menuitem" type="button" onClick={() => { setMenu(false); setDeleting(true); }} style={{ color: "#B42318" }}><Icon name="trash" size={16} /> Delete exam</button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -226,9 +222,12 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
               const signed = r.status === "SIGNED";
               return (
                 <div key={r.id} className="tbl-row" style={{ gridTemplateColumns: COLS }}>
-                  <span style={{ flexDirection: "column", alignItems: "flex-start", justifyContent: "center" }}>
-                    <button className="row-btn ellipsis" type="button" onClick={() => setSel(r.id)} style={{ display: "block", maxWidth: "100%", fontWeight: 700 }}>{r.name}</button>
-                    <span className="mono" style={{ fontSize: 11.5, color: "#64748B", marginTop: 3 }}>+91 {r.mobile}</span>
+                  <span style={{ gap: 12 }}>
+                    <span className="avatar" aria-hidden="true">{initials(r.name)}</span>
+                    <span style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+                      <button className="row-btn ellipsis" type="button" onClick={() => setSel(r.id)} style={{ display: "block", maxWidth: "100%", fontWeight: 700 }}>{r.name}</button>
+                      <span className="mono" style={{ fontSize: 11.5, color: "#64748B", marginTop: 2 }}>+91 {r.mobile}</span>
+                    </span>
                   </span>
                   <span style={{ gap: 10 }}>
                     <span className="mono" style={{ flex: "none", fontSize: 11.5, fontWeight: 600, padding: "3px 7px", borderRadius: 6, background: "#F1F5F9", color: "#334155" }}>{r.centreCode}</span>
@@ -245,10 +244,10 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
                     ) : <span style={{ color: "#94A3B8" }}>—</span>}
                   </span>
                   <span style={{ justifyContent: "flex-end", gap: 6 }}>
-                    {!signed && <button className="icon-btn" type="button" aria-label="Copy secure link" title="Copy secure link" onClick={() => copy(r)}><Icon name="link" size={16} /></button>}
-                    {!signed && data.sms.linkSms && <button className="icon-btn" type="button" aria-label="Send link by SMS" title="Send link by SMS" onClick={() => send([r.id], undefined, "sms")} disabled={!!progress}><Icon name="sms" size={16} /></button>}
-                    {!signed && <button className="icon-btn" type="button" aria-label="Send invite on WhatsApp" title="Send invite on WhatsApp" onClick={() => whatsapp(r)} disabled={!!progress}><Icon name="whatsapp" size={16} /></button>}
-                    {signed && <a className="icon-btn" aria-label="Download signed PDF" title="Download signed PDF" href={`/api/admin/signatories/${r.id}/file?kind=signed`}><Icon name="download" size={16} /></a>}
+                    {!signed && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Copy secure link" title="Copy secure link" onClick={() => copy(r)}><Icon name="link" size={16} /></button>}
+                    {!signed && data.sms.linkSms && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Send link by SMS" title="Send link by SMS" onClick={() => send([r.id], undefined, "sms")} disabled={!!progress}><Icon name="sms" size={16} /></button>}
+                    {!signed && <button className="icon-btn icon-btn-ghost" type="button" aria-label="Send invite on WhatsApp" title="Send invite on WhatsApp" onClick={() => whatsapp(r)} disabled={!!progress}><Icon name="whatsapp" size={16} /></button>}
+                    {signed && <a className="icon-btn icon-btn-ghost" aria-label="Download signed PDF" title="Download signed PDF" href={`/api/admin/signatories/${r.id}/file?kind=signed`}><Icon name="download" size={16} /></a>}
                     <button className="icon-btn icon-btn-ink" type="button" aria-label="Open details" title="Open details" onClick={() => setSel(r.id)}><Icon name="next" size={16} /></button>
                   </span>
                 </div>
@@ -285,9 +284,10 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
   );
 }
 
-const COLS = "minmax(180px, 1.3fr) minmax(200px, 1.7fr) 170px 136px 172px 150px";
+const COLS = "minmax(210px, 1.4fr) minmax(200px, 1.6fr) 170px 136px 172px 150px";
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+const initials = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
 function AddSignatory({ projectId, onClose, onAdded }: { projectId: string; onClose: () => void; onAdded: () => void }) {
   const [f, setF] = useState({ name: "", mobile: "", centreCode: "", centreName: "" });

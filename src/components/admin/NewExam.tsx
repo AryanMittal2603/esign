@@ -9,6 +9,9 @@ export function NewExam({ onClose }: { onClose: () => void }) {
   const [f, setF] = useState({ name: "", examName: "", examDate: "", shift: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const prettyDate = f.examDate ? new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${f.examDate}T00:00:00Z`)) : "";
+  const prettyShift = /^\d+$/.test(f.shift.trim()) ? `Shift ${f.shift.trim()}` : f.shift.trim();
+  const defaultName = f.examName.trim() && prettyDate && prettyShift ? `${f.examName.trim()} · ${prettyDate} · ${prettyShift}` : "";
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   const submit = async (e: React.FormEvent) => {
@@ -36,7 +39,7 @@ export function NewExam({ onClose }: { onClose: () => void }) {
         </div>
         <label>
           <span className="label">Display name <span style={{ textTransform: "none", letterSpacing: 0 }}>(optional)</span></span>
-          <input className="field" value={f.name} onChange={set("name")} placeholder={f.examName && f.shift ? `${f.examName} · ${f.shift}` : "Defaults to Exam · Shift"} />
+          <input className="field" value={f.name} onChange={set("name")} placeholder={defaultName || "Defaults to Exam · Date · Shift"} />
         </label>
         <p style={{ margin: 0, fontSize: 13, color: "#637383" }}>Exam, date and shift together must be unique.</p>
         <ErrorBox>{err}</ErrorBox>

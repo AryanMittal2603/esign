@@ -8,7 +8,7 @@ import { DeliveryBadge } from "@/components/admin/Delivery";
 type Detail = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status;
   project: { id: string; name: string }; link: string;
-  pages: number | null; photoAt: string | null; faceCheck: string | null; geo: { lat: number; lng: number; accuracy: number | null } | null;
+  pages: number | null; linkSentAt: string | null; openedAt: string | null; verifiedAt: string | null; uploadedAt: string | null; photoAt: string | null; faceCheck: string | null; geo: { lat: number; lng: number; accuracy: number | null } | null;
   signedAt: string | null; documentId: string | null; otpRef: string | null; signedHash: string | null; device: string | null; signIp: string | null;
   hasPhoto: boolean; hasDraft: boolean; hasSigned: boolean;
   events: { at: string; action: string; text: string; actor: string; ip: string | null }[];
@@ -82,23 +82,39 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
 
             <div style={{ display: "flex", flexDirection: "column" }}>
               <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "#637383", marginBottom: 10 }}>Timeline</span>
-              {MILESTONES.map((m, j) => {
-                const ev = [...d.events].reverse().find((e) => m.actions.includes(e.action));
-                const doneIdx = MILESTONES.reduce((acc, mm, i) => (d.events.some((e) => mm.actions.includes(e.action)) ? i : acc), -1);
-                const next = !ev && j === doneIdx + 1;
-                return (
-                  <div key={m.label} className="up" style={{ animationDelay: `${0.15 + j * 0.06}s`, display: "flex", gap: 14 }}>
-                    <span style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 14, flex: "none" }}>
-                      <span style={{ width: 12, height: 12, borderRadius: "50%", marginTop: 3, background: ev ? "#2E7567" : "#fff", border: `2px solid ${ev ? "#2E7567" : next ? "#B76A3B" : "#D4DEE0"}` }} />
-                      {j < MILESTONES.length - 1 && <span style={{ flex: 1, width: 2, minHeight: 18, background: ev && j < doneIdx ? "#2E7567" : "#E6ECEC" }} />}
-                    </span>
-                    <span style={{ paddingBottom: 14 }}>
-                      <span style={{ display: "block", fontWeight: 700, fontSize: 14, color: ev || next ? "#142844" : "#8C99A6" }}>{m.label}</span>
-                      <span className="mono" style={{ display: "block", fontSize: 11.5, color: "#637383", marginTop: 2 }}>{ev ? `${fmtIST(ev.at)}${ev.action === "CSR_UPLOADED" || ev.action === "CSR_REPLACED" ? ` · ${d.pages ?? ""} pages` : ""}` : next ? "Waiting" : ""}</span>
-                    </span>
-                  </div>
-                );
-              })}
+              {(() => {
+                const found = MILESTONES.map((m) => [...d.events].reverse().find((e) => m.actions.includes(e.action)));
+                // furthest step reached, from the activity log or from the signatory's own status / timestamps
+                const fromStatus = d.signedAt ? 5 : d.photoAt ? 4 : d.status === "UPLOADED" ? 3 : d.status === "VERIFIED" ? 2 : d.status === "OPENED" ? 1 : d.linkSentAt ? 0 : -1;
+                const lastDone = Math.max(fromStatus, found.reduce((acc, ev, i) => (ev ? i : acc), -1));
+                // steps with no record but followed by a later completed step clearly happened
+                const implied: Record<string, string> = {
+                  "Link sent": "Link shared outside SeqreSign (copied or forwarded)",
+                  "Link opened": "Opened from “verify your mobile”",
+                  "Mobile verified": "Verified with OTP (time not recorded)",
+                };
+                const stamps = [d.linkSentAt, d.openedAt, d.verifiedAt, d.uploadedAt, d.photoAt, d.signedAt];
+                return MILESTONES.map((m, j) => {
+                  const ev = found[j];
+                  const ts = ev?.at ?? stamps[j];
+                  const done = !!ev || j < lastDone;
+                  const next = !done && j === lastDone + 1;
+                  return (
+                    <div key={m.label} className="up" style={{ animationDelay: `${0.15 + j * 0.06}s`, display: "flex", gap: 14 }}>
+                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 14, flex: "none" }}>
+                        <span style={{ width: 12, height: 12, borderRadius: "50%", marginTop: 3, background: done ? (ts ? "#22A06B" : "#fff") : "#fff", border: `2px solid ${done ? "#22A06B" : next ? "#B76A3B" : "#CBD5E1"}` }} />
+                        {j < MILESTONES.length - 1 && <span style={{ flex: 1, width: 2, minHeight: 18, background: j < lastDone ? "#22A06B" : "#E2E8F0" }} />}
+                      </span>
+                      <span style={{ paddingBottom: 14 }}>
+                        <span style={{ display: "block", fontWeight: 700, fontSize: 14, color: done || next ? "#0F172A" : "#94A3B8" }}>{m.label}</span>
+                        <span className="mono" style={{ display: "block", fontSize: 11.5, color: "#64748B", marginTop: 2 }}>
+                          {ts ? `${fmtIST(ts)}${j === 3 && d.pages ? ` · ${d.pages} ${d.pages === 1 ? "page" : "pages"}` : ""}` : done ? implied[m.label] ?? "Done (time not recorded)" : next ? "Waiting" : ""}
+                        </span>
+                      </span>
+                    </div>
+                  );
+                });
+              })()}
             </div>
 
             {d.messages.length > 0 && (
