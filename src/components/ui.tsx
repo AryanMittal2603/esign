@@ -86,6 +86,7 @@ const PATHS: Record<string, ReactNode> = {
   eye: <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>,
   phone: <><rect x="7" y="2" width="10" height="20" rx="2.5" /><path d="M11 18h2" /></>,
   trash: <><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" /></>,
+  globe: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" /></>,
   users: <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5" /><path d="M15.5 4.8a3.3 3.3 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.4 3.5 5.2" /></>,
   refresh: <><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></>,
 };
@@ -102,9 +103,9 @@ export function Icon({ name, size = 18, stroke = 1.8, color = "currentColor", st
 export function Seal({ size = 124 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 124 124" fill="none" aria-hidden="true">
-      <circle cx="62" cy="62" r="58" stroke="#2E7567" strokeOpacity=".35" strokeWidth="1.5" strokeDasharray="3 6" className="spin-slow" />
-      <circle cx="62" cy="62" r="48" stroke="#2E7567" strokeWidth="3" pathLength={1} className="draw" style={{ animationDelay: ".5s" }} />
-      <circle cx="62" cy="62" r="40" fill="#2E7567" className="pop" style={{ animationDelay: "1.3s", transformBox: "fill-box", transformOrigin: "center" }} />
+      <circle cx="62" cy="62" r="58" stroke="#B76A3B" strokeOpacity=".35" strokeWidth="1.5" strokeDasharray="3 6" className="spin-slow" />
+      <circle cx="62" cy="62" r="48" stroke="#B76A3B" strokeWidth="3" pathLength={1} className="draw" style={{ animationDelay: ".5s" }} />
+      <circle cx="62" cy="62" r="40" fill="#B76A3B" className="pop" style={{ animationDelay: "1.3s", transformBox: "fill-box", transformOrigin: "center" }} />
       <path d="M45 63l12 12 22-25" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" pathLength={1} className="draw" style={{ animationDelay: "1.55s" }} />
     </svg>
   );
@@ -196,7 +197,7 @@ export function Silhouette({ size = 38 }: { size?: number }) {
 }
 
 /* ── on-screen number keypad (replaces the phone's own keyboard) ── */
-export function Keypad({ value, onChange, max, disabled }: { value: string; onChange: (v: string) => void; max: number; disabled?: boolean }) {
+export function Keypad({ value, onChange, max, disabled, clearLabel = "Clear" }: { value: string; onChange: (v: string) => void; max: number; disabled?: boolean; clearLabel?: string }) {
   const press = (next: string) => {
     if (disabled) return;
     try { navigator.vibrate?.(8); } catch { /* not supported */ }
@@ -207,7 +208,7 @@ export function Keypad({ value, onChange, max, disabled }: { value: string; onCh
     <div className="keypad up" role="group" aria-label="Number keypad" style={{ animationDelay: ".9s" }}>
       {keys.map((k) => {
         if (k === "clear") {
-          return <button key={k} type="button" className="key key-soft" onClick={() => press("")} disabled={disabled || !value} aria-label="Clear">Clear</button>;
+          return <button key={k} type="button" className="key key-soft" onClick={() => press("")} disabled={disabled || !value} aria-label={clearLabel}>{clearLabel}</button>;
         }
         if (k === "back") {
           return (
