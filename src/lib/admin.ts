@@ -2,6 +2,8 @@ import { getAdmin } from "./auth";
 import { db } from "./db";
 import { MOBILE_RE, normaliseMobile } from "./http";
 import { randomToken } from "./crypto";
+import { getFile } from "./storage";
+import { encodeImpression } from "./impression";
 
 export async function requireAdmin(): Promise<string | null> {
   const a = await getAdmin();
@@ -139,4 +141,16 @@ export function listWhere(projectId: string, opts: { csr?: CsrFilter | null; del
     });
   }
   return { AND: and };
+}
+
+/** Facial impression grid for a signed row; photos taken before impressions were stored are rendered once and kept. */
+export async function ensureImpression(r: { id: string; impression: string | null; photoKey: string | null; signedAt: Date | null }): Promise<string | null> {
+  if (r.impression || !r.photoKey || !r.signedAt) return r.impression;
+  try {
+    const imp = encodeImpression(new Uint8Array(await getFile(r.photoKey)));
+    if (imp) await db.signatory.update({ where: { id: r.id }, data: { impression: imp } });
+    return imp;
+  } catch {
+    return null; // photo missing — leave blank
+  }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Impression } from "./Impression";
 import { useCallback, useEffect, useState } from "react";
 import { Chip, Icon, Kicker, Silhouette, Spinner, api } from "@/components/ui";
 import { fmtIST, fmtTimeIST, type Status } from "@/lib/format";
@@ -9,7 +10,7 @@ import { Confirm } from "@/components/admin/Confirm";
 type Detail = {
   id: string; name: string; mobile: string; centreCode: string; centreName: string; status: Status;
   project: { id: string; name: string }; link: string;
-  pages: number | null; linkSentAt: string | null; openedAt: string | null; verifiedAt: string | null; uploadedAt: string | null; photoAt: string | null; faceCheck: string | null; geo: { lat: number; lng: number; accuracy: number | null } | null;
+  pages: number | null; linkSentAt: string | null; openedAt: string | null; verifiedAt: string | null; uploadedAt: string | null; photoAt: string | null; faceCheck: string | null; liveness: string | null; impression: string | null; geo: { lat: number; lng: number; accuracy: number | null } | null;
   signedAt: string | null; documentId: string | null; otpRef: string | null; signedHash: string | null; device: string | null; signIp: string | null;
   hasPhoto: boolean; hasDraft: boolean; hasSigned: boolean;
   events: { at: string; action: string; text: string; actor: string; ip: string | null }[];
@@ -75,6 +76,11 @@ export function SignatoryDrawer({ id, smsReady, waReady, onClose, onChanged, say
                   <img src={`/api/admin/signatories/${id}/file?kind=photo`} alt={`Live photo of ${d.name}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : <Silhouette size={76} />}
               </span>
+              {signed && d.impression && (
+                <span className="pop" style={{ animationDelay: ".18s", flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }} data-tip={d.liveness === "passed" ? "Facial impression · liveness passed" : "Facial impression from the live photo"}>
+                  <span style={{ padding: 3, borderRadius: 16, boxShadow: "0 0 0 3px #DCE7F3", background: "#F3F8FD" }}><Impression grid={d.impression} width={70} height={90} /></span>
+                </span>
+              )}
               <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                 <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1 }}>{d.name}</span>
                 <span className="mono" style={{ fontSize: 12, color: "#637383" }}>+91 {d.mobile}</span>
