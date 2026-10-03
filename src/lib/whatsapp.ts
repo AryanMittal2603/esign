@@ -2,8 +2,8 @@
  * WhatsApp intimation through Gupshup (approved template messages).
  * Template params are configured with GUPSHUP_TEMPLATE_PARAMS, "|"-separated, using placeholders:
  *   {exam} exam name · {name} signatory · {centre} centre code · {link} secure link · {token} link token
- * Example for "…complete your CSR Form for {{1}}.": GUPSHUP_TEMPLATE_PARAMS="{exam}"
- * If the template's URL button takes a dynamic suffix, add it as the last param, e.g. "{exam}|s/{token}".
+ * Example for "…complete your CSR Form for {{1}}." with button URL ".../s/{{1}}": GUPSHUP_TEMPLATE_PARAMS="{exam}|{token}"
+ * The URL button's dynamic suffix is always the last param.
  */
 type SendResult = { ok: true; messageId?: string } | { ok: false; error: string };
 
