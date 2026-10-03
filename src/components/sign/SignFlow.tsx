@@ -8,7 +8,7 @@ import { PdfPreview } from "./PdfPreview";
 import { toJpeg, uploadToBlob, uploadWithProgress } from "./media";
 import { fmtBytes, fmtIST, fmtTimeIST } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
-import { LangButton } from "./Intro";
+import { HowItWorks, LangButton } from "./Intro";
 import { Rosette } from "./Rosette";
 
 type Data = {
@@ -133,15 +133,15 @@ export function SignFlow({ token }: { token: string }) {
           <header className="entry-hero">
             <Rosette size={460} className="hero-rosette" />
             <div className="entry-top">
-              <span className="fade"><Brand size={16} light /></span>
-              <span className="fade" style={{ animationDelay: ".2s" }}><LangButton light /></span>
+              <span className="fade"><Brand size={16} /></span>
+              <span className="fade" style={{ animationDelay: ".2s" }}><LangButton /></span>
             </div>
             <Kicker delay={0.4}>{t("link.kicker", { code: data.centreCode })}</Kicker>
             <h1 className="entry-title">
-              <Words key={`${data.stage}-${t("link.newTitle")}`} text={data.stage === "signed" ? t("link.signedTitle") : data.stage === "uploaded" ? t("link.uploadedTitle") : t("link.newTitle")} start={0.5} accent={1} color="#E0A27A" />
+              <Words key={`${data.stage}-${t("link.newTitle")}`} text={data.stage === "signed" ? t("link.signedTitle") : data.stage === "uploaded" ? t("link.uploadedTitle") : t("link.newTitle")} start={0.5} accent={1} color="#B76A3B" />
             </h1>
             <p className="entry-sub up" style={{ animationDelay: "1s" }}>
-              {data.stage === "signed" ? tn("link.signedSub", { date: <b style={{ color: "#fff" }}>{fmtIST(data.signedOn)}</b> }) : data.stage === "uploaded" ? t("link.uploadedSub") : t("link.newSub")}
+              {data.stage === "signed" ? tn("link.signedSub", { date: <b style={{ color: "#142844" }}>{fmtIST(data.signedOn)}</b> }) : data.stage === "uploaded" ? t("link.uploadedSub") : t("link.newSub")}
             </p>
           </header>
           <div className="entry-sheet">
@@ -151,17 +151,7 @@ export function SignFlow({ token }: { token: string }) {
               {(data.project.date || data.project.shift) && <div className="kv"><span>{t("kv.shift")}</span><span>{[data.project.date, data.project.shift].filter(Boolean).join(" · ")}</span></div>}
               <div className="kv"><span>{t("kv.mobile")}</span><span>+91 {data.mobileMasked}</span></div>
             </div>
-            {data.stage !== "signed" && (
-              <div className="how up" style={{ animationDelay: "1.25s" }}>
-                {([["upload", "step.upload"], ["camera", "step.photo"], ["pen", "step.sign"]] as const).map(([icon, key], i) => (
-                  <div key={key} className={`how-step${data.stage === "uploaded" && i === 0 ? " done" : ""}`}>
-                    <span className="how-ico">{data.stage === "uploaded" && i === 0 ? <Icon name="check" size={18} stroke={2.6} /> : <Icon name={icon} size={18} stroke={2} />}</span>
-                    <span className="how-n mono">{i + 1}</span>
-                    <span className="how-l">{t(key)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {data.stage !== "signed" && <HowItWorks uploaded={data.stage === "uploaded"} />}
             <div style={{ flex: 1 }} />
             <ErrorBox>{err}</ErrorBox>
             <button className={`btn ${data.stage === "signed" ? "btn-line" : "btn-ink"} up`} type="button" style={{ animationDelay: "1.3s", width: "100%", minHeight: 54 }} onClick={sendAccess} disabled={busy}>

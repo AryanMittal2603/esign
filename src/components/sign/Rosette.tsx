@@ -1,8 +1,8 @@
 /** Guilloche rosette — the security-print motif from our signed PDFs, drawn as slowly turning line art. */
 const LAYERS = [
-  { petals: 18, base: 150, amp: 34, turns: 20, color: "#7590B4", op: 0.3, spin: "rosette-a" },
-  { petals: 12, base: 112, amp: 26, turns: 16, color: "#CB8A60", op: 0.32, spin: "rosette-b" },
-  { petals: 24, base: 196, amp: 22, turns: 24, color: "#A7B9D1", op: 0.18, spin: "rosette-a" },
+  { petals: 18, base: 150, amp: 34, turns: 20, color: "#A8BBC2", op: 0.42, spin: "rosette-a" },
+  { petals: 12, base: 112, amp: 26, turns: 16, color: "#B76A3B", op: 0.22, spin: "rosette-b" },
+  { petals: 24, base: 196, amp: 22, turns: 24, color: "#8FBFD0", op: 0.35, spin: "rosette-a" },
 ];
 
 const PATHS = LAYERS.map((l) =>

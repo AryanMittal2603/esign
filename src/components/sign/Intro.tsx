@@ -20,7 +20,7 @@ function Gate({ children }: { children: React.ReactNode }) {
     try { v = localStorage.getItem(INTRO_KEY) === "1"; } catch { /* storage blocked: show intro each visit */ }
     setSeen(v);
   }, []);
-  if (seen === null) return <div className="intro" />;
+  if (seen === null) return <div className="stage phone intro" />;
   if (!seen) {
     return <Intro onDone={() => { try { localStorage.setItem(INTRO_KEY, "1"); } catch { /* ignore */ } setSeen(true); }} />;
   }
@@ -42,13 +42,12 @@ function Intro({ onDone }: { onDone: () => void }) {
   const cta = page === 0 ? t("intro.proceed") : page === 1 ? t("intro.continue") : t("intro.start");
 
   return (
-    <div className="intro">
+    <div className="stage phone intro">
       <Rosette size={760} className="intro-rosette" />
-      <div className="intro-glow" />
       <div className="intro-body" key={page}>
         {page === 0 && (
           <div className="intro-center">
-            <div className="fade"><Brand size={22} light /></div>
+            <div className="fade"><Brand size={22} /></div>
             <div className="intro-greet" aria-live="polite">
               <span key={g} className="greet-word">{GREETINGS[g]}</span>
             </div>
@@ -58,7 +57,7 @@ function Intro({ onDone }: { onDone: () => void }) {
 
         {page === 1 && (
           <div className="intro-col">
-            <div className="fade"><Brand size={18} light /></div>
+            <div className="fade"><Brand size={18} /></div>
             <h1 className="intro-h up" style={{ animationDelay: ".1s" }}>{t("intro.chooseLang")}{lang !== "hi" && <span className="intro-h-alt"> / भाषा चुनें</span>}</h1>
             <div className="lang-grid" role="radiogroup" aria-label={t("intro.chooseLang")}>
               {LANGS.map((l, i) => (
@@ -75,7 +74,7 @@ function Intro({ onDone }: { onDone: () => void }) {
 
         {page === 2 && (
           <div className="intro-col">
-            <div className="intro-kicker up">{t("intro.before")}</div>
+            <div className="kicker" style={{ marginTop: 30 }}>{t("intro.before")}</div>
             {([
               ["intro.c1t", "intro.c1d", "pen"],
               ["intro.c2t", "intro.c2d", "phone"],
@@ -99,7 +98,7 @@ function Intro({ onDone }: { onDone: () => void }) {
             <button key={i} type="button" role="tab" aria-selected={page === i} aria-label={`${i + 1} / 3`} className={page === i ? "on" : ""} onClick={() => setPage(i)} />
           ))}
         </div>
-        <button className="btn btn-white" type="button" onClick={next}>
+        <button className="btn btn-ink" type="button" onClick={next} style={{ width: "100%", minHeight: 56 }}>
           {cta} <Icon name="next" size={18} stroke={2.2} />
         </button>
       </div>
@@ -122,7 +121,7 @@ export function LangButton({ light = false }: { light?: boolean }) {
           <div className="sheet" role="dialog" aria-label={t("common.language")} onClick={(e) => e.stopPropagation()}>
             <div className="sheet-grip" />
             <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 12 }}>{t("intro.chooseLang")}</div>
-            <div className="lang-grid light">
+            <div className="lang-grid">
               {LANGS.map((l) => (
                 <button key={l.code} type="button" className={`lang-tile${lang === l.code ? " on" : ""}`} onClick={() => { setLang(l.code); setOpen(false); }}>
                   <span className="lang-native">{l.label}</span>
@@ -136,5 +135,24 @@ export function LangButton({ light = false }: { light?: boolean }) {
         document.body,
       )}
     </>
+  );
+}
+
+/** Upload → Photo → Sign strip shown on the entry screens. */
+export function HowItWorks({ uploaded = false, delay = 1.25 }: { uploaded?: boolean; delay?: number }) {
+  const { t } = useI18n();
+  return (
+    <div className="how up" style={{ animationDelay: `${delay}s` }}>
+      {([["upload", "step.upload"], ["camera", "step.photo"], ["pen", "step.sign"]] as const).map(([icon, key], i) => {
+        const done = uploaded && i === 0;
+        return (
+          <div key={key} className={`how-step${done ? " done" : ""}`}>
+            <span className="how-ico">{done ? <Icon name="check" size={18} stroke={2.6} /> : <Icon name={icon} size={18} stroke={2} />}</span>
+            <span className="how-n mono">{i + 1}</span>
+            <span className="how-l">{t(key)}</span>
+          </div>
+        );
+      })}
+    </div>
   );
 }

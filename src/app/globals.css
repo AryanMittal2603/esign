@@ -363,3 +363,29 @@ html:not([lang="en"]) :is(.h1,.entry-title,.intro-h){letter-spacing:-.01em;line-
 .how-step.done .how-ico{background:#B76A3B}
 .how-n{font-size:10px;color:#7590B4}
 .how-l{font-size:13px;font-weight:700;color:#142844;line-height:1.2}
+
+/* signatory intro + entry: current light theme (paper/sky, navy ink, copper accent) */
+.intro{background:none;color:#142844;display:flex;flex-direction:column}
+.intro-rosette{opacity:.9}
+.greet-word{color:#142844;text-shadow:none}
+.intro-sub{color:#637383}
+.intro-h{color:#142844}
+.intro-h-alt{color:#637383}
+.lang-tile{background:#FFFFFF;border:1.5px solid #D4DEE0;color:#142844;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 0 #14284408,0 14px 28px -24px #14284455}
+.lang-tile.on{background:#142844;color:#FFFFFF;border-color:#142844;box-shadow:0 14px 28px -16px #142844}
+.lang-grid .lang-tile{height:80px}
+.glass-card{background:#FFFFFF;border:1px solid #D4DEE0;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 0 #14284408,0 22px 44px -32px #14284455}
+.glass-ico{background:#142844;box-shadow:0 10px 22px -12px #142844}
+.glass-card:nth-child(3) .glass-ico{background:#B76A3B;box-shadow:0 10px 22px -12px #B76A3B}
+.glass-card:nth-child(4) .glass-ico{background:#DCECF2;color:#142844;box-shadow:none}
+.glass-t{color:#142844}
+.glass-d{color:#637383}
+.intro-dots button{background:#A8BBC2}
+.intro-dots button.on{background:#142844}
+.entry-hero{background:none;color:#142844;box-shadow:none;border-radius:0;padding-bottom:6px}
+.entry-hero .hero-rosette{right:-210px;top:-200px;opacity:.8}
+.entry-hero .kicker{color:#9A5530}
+.entry-sub{color:#637383}
+.entry-sheet{padding-top:16px}
+.how{background:#FFFFFF;border:1px solid #D4DEE0;box-shadow:0 1px 0 #14284408,0 22px 44px -32px #14284455}
+.how-step:nth-child(3) .how-ico{background:#B76A3B}

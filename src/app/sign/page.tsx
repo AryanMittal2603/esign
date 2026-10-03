@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Brand, ErrorBox, Icon, Keypad, Kicker, OtpInput, Spinner, Words, api } from "@/components/ui";
-import { LangButton, SignerApp } from "@/components/sign/Intro";
+import { HowItWorks, LangButton, SignerApp } from "@/components/sign/Intro";
 import { Rosette } from "@/components/sign/Rosette";
 import { useI18n } from "@/lib/i18n";
 import { fmtIST, type Status } from "@/lib/format";
@@ -57,11 +57,11 @@ function DirectAccess() {
           <header className="entry-hero">
             <Rosette size={460} className="hero-rosette" />
             <div className="entry-top">
-              <span className="fade"><Brand size={16} light /></span>
-              <span className="fade" style={{ animationDelay: ".2s" }}><LangButton light /></span>
+              <span className="fade"><Brand size={16} /></span>
+              <span className="fade" style={{ animationDelay: ".2s" }}><LangButton /></span>
             </div>
             <Kicker delay={0.4}>{t("login.kicker")}</Kicker>
-            <h1 className="entry-title"><Words text={t("login.title")} start={0.5} accent={1} color="#E0A27A" /></h1>
+            <h1 className="entry-title"><Words text={t("login.title")} start={0.5} accent={1} color="#B76A3B" /></h1>
             <p className="entry-sub up" style={{ animationDelay: "1s" }}>{t("login.sub")}</p>
           </header>
           <div className="entry-sheet">
@@ -76,6 +76,7 @@ function DirectAccess() {
               </span>
             </label>
             <ErrorBox>{err}</ErrorBox>
+            <HowItWorks delay={1.2} />
             <div style={{ flex: 1 }} />
             <Keypad value={mobile} onChange={setMobile} max={10} disabled={busy} clearLabel={t("keypad.clear")} />
             <button className="btn btn-ink up" type="button" style={{ animationDelay: "1.3s", width: "100%", minHeight: 54 }} disabled={mobile.length !== 10 || busy} onClick={send}>
