@@ -1,10 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { TipLayer } from "@/components/TipLayer";
 
-const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo", weight: ["400", "500", "600", "700", "800"] });
-const plex = IBM_Plex_Mono({ subsets: ["latin"], variable: "--font-plex", weight: ["400", "500", "600"] });
+// Fonts are bundled with the app (no Google Fonts fetch at build time).
+const archivo = localFont({
+  src: "../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2",
+  weight: "100 900",
+  variable: "--font-archivo",
+  display: "swap",
+});
+const plex = localFont({
+  src: [
+    { path: "../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2", weight: "400" },
+    { path: "../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2", weight: "500" },
+    { path: "../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2", weight: "600" },
+  ],
+  variable: "--font-plex",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "SeqreSign — CSR eSign",
