@@ -13,6 +13,8 @@ type Data = {
   project: { name: string; exam: string | null; date: string | null; shift: string | null };
   centreCode: string;
   mobileMasked: string;
+  stage: "signed" | "uploaded" | "new";
+  signedOn: string | null;
   name?: string;
   centreName?: string;
   status?: string;
@@ -128,8 +130,22 @@ export function SignFlow({ token }: { token: string }) {
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16 }}>
             <DocArt />
             <Kicker delay={0.4}>Secure link · Centre {data.centreCode}</Kicker>
-            <h1 className="h1" style={{ fontSize: 38, lineHeight: 1 }}><Words text="Your centre report is ready to sign." start={0.5} accent={1} /></h1>
-            <p className="sub up" style={{ animationDelay: "1.15s" }}>Upload your CSR, take a quick photo, and sign with a one-time code. It takes about two minutes.</p>
+            {data.stage === "signed" ? (
+              <>
+                <h1 className="h1" style={{ fontSize: 38, lineHeight: 1 }}><Words text="This report is already signed." start={0.5} accent={1} /></h1>
+                <p className="sub up" style={{ animationDelay: "1.15s" }}>It was signed{data.signedOn ? <> on <b>{fmtIST(data.signedOn)}</b></> : null} and can&apos;t be changed. There&apos;s nothing more to do. Verify your mobile only if you want to download the signed copy.</p>
+              </>
+            ) : data.stage === "uploaded" ? (
+              <>
+                <h1 className="h1" style={{ fontSize: 38, lineHeight: 1 }}><Words text="Your report is waiting for your signature." start={0.5} accent={1} /></h1>
+                <p className="sub up" style={{ animationDelay: "1.15s" }}>Your CSR is already uploaded. Verify your mobile to pick up where you left off.</p>
+              </>
+            ) : (
+              <>
+                <h1 className="h1" style={{ fontSize: 38, lineHeight: 1 }}><Words text="Your centre report is ready to sign." start={0.5} accent={1} /></h1>
+                <p className="sub up" style={{ animationDelay: "1.15s" }}>Upload your CSR, take a quick photo, and sign with a one-time code. It takes about two minutes.</p>
+              </>
+            )}
             <div className="card up" style={{ animationDelay: "1.3s", padding: "4px 16px" }}>
               <div className="kv"><span>Exam</span><span>{data.project.exam ?? data.project.name}</span></div>
               {(data.project.date || data.project.shift) && <div className="kv"><span>Shift</span><span>{[data.project.date, data.project.shift].filter(Boolean).join(" · ")}</span></div>}
@@ -137,8 +153,8 @@ export function SignFlow({ token }: { token: string }) {
             </div>
           </div>
           <ErrorBox>{err}</ErrorBox>
-          <button className="btn btn-ink up" type="button" style={{ animationDelay: "1.45s", width: "100%", minHeight: 54 }} onClick={sendAccess} disabled={busy}>
-            {busy ? <Spinner /> : null} Send OTP
+          <button className={`btn ${data.stage === "signed" ? "btn-line" : "btn-ink"} up`} type="button" style={{ animationDelay: "1.45s", width: "100%", minHeight: 54 }} onClick={sendAccess} disabled={busy}>
+            {busy ? <Spinner /> : data.stage === "signed" ? <Icon name="download" /> : null} {data.stage === "signed" ? "Verify to download signed copy" : "Send OTP"}
           </button>
           <div className="mono fade" style={{ animationDelay: "1.6s", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 11, color: "#637383" }}>
             <Icon name="lock" size={13} stroke={2} /> Opens only after your mobile is verified

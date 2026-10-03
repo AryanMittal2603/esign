@@ -22,6 +22,9 @@ export function serialise(ctx: SignerCtx) {
     project: { name: s.project.name, exam: s.project.examName, date: s.project.examDate, shift: s.project.shift },
     centreCode: s.centreCode,
     mobileMasked: maskMobile(s.mobile),
+    // shown before verification so a used link says so up front (no document details)
+    stage: (s.signedAt ? "signed" : s.draftKey ? "uploaded" : "new") as "signed" | "uploaded" | "new",
+    signedOn: s.signedAt,
   };
   if (!ctx.authorised) return pub;
   return {
