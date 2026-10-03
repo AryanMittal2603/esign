@@ -100,11 +100,10 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
   const zipParts = Math.ceil(stats.signed / ZIP_PART);
   const dv = counts.delivery;
   const messaged = stats.total - dv.notsent;
-  const stages = [
-    { label: "Invited", v: messaged, fg: "#0F172A", bar: "#94A3B8", note: dv.notsent ? `${num(dv.notsent)} not sent yet` : "everyone invited" },
+  const stages: { label: string; v: number; fg: string; bar: string; note: string; pct?: boolean; also?: { v: number; label: string; fg: string; bar: string } }[] = [
+    { label: "Signatories", v: stats.total, fg: "#0F172A", bar: "#94A3B8", pct: false, note: dv.notsent ? `${num(messaged)} invited · ${num(dv.notsent)} not sent yet` : stats.total ? "everyone invited" : "none added yet" },
     { label: "Delivered", v: dv.delivered + dv.read, fg: "#0F5F73", bar: "#14A3B8", note: `${num(dv.read)} read · ${num(dv.failed)} failed` },
-    { label: "Opened", v: stats.opened, fg: "#1D4ED8", bar: "#3B6FF0", note: "opened their link" },
-    { label: "Uploaded", v: stats.uploaded, fg: "#8A5A00", bar: "#E0A100", note: "uploaded a CSR" },
+    { label: "Opened & uploaded", v: stats.opened, fg: "#1D4ED8", bar: "#3B6FF0", note: `${num(stats.opened - stats.uploaded)} opened, not uploaded yet`, also: { v: stats.uploaded, label: "uploaded", fg: "#8A5A00", bar: "#E0A100" } },
     { label: "Signed", v: stats.signed, fg: "#17694F", bar: "#22A06B", note: stats.pending ? `${num(stats.pending)} still to sign` : stats.total ? "everyone signed" : "—" },
   ];
   const rows = table?.rows ?? [];
@@ -174,15 +173,27 @@ export default function ExamPage({ params }: { params: Promise<{ id: string }> }
       )}
 
       {/* funnel */}
-      <section className="card up" style={{ animationDelay: ".45s", padding: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", overflow: "hidden" }} aria-label="Progress">
+      <section className="card up funnel" style={{ animationDelay: ".45s", padding: 0, overflow: "hidden" }} aria-label="Progress">
         {stages.map((x, i) => (
-          <div key={x.label} style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8, borderLeft: i ? "1px solid #EEF2F6" : 0 }}>
+          <div key={x.label} className="funnel-cell" style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
               <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "#64748B" }}>{x.label}</span>
-              <span className="mono" style={{ fontSize: 11.5, fontWeight: 600, color: x.fg }}>{pctOf(x.v, stats.total)}%</span>
+              {x.pct !== false && <span className="mono" style={{ fontSize: 11.5, fontWeight: 600, color: x.fg }}>{pctOf(x.v, stats.total)}%</span>}
             </span>
-            <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: x.fg }}>{num(Math.round(x.v * k))}</span>
-            <span style={{ height: 4, borderRadius: 2, background: "#EEF2F6", overflow: "hidden" }}><span className="grow" style={{ display: "block", height: "100%", width: `${stats.total ? (x.v / stats.total) * 100 : 0}%`, background: x.bar, borderRadius: 2, animationDelay: `${0.5 + i * 0.06}s`, transition: "width .6s ease" }} /></span>
+            <span style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: x.fg }} data-tip={x.also ? "Opened their link" : undefined}>{num(Math.round(x.v * k))}</span>
+              {x.also && (
+                <span style={{ display: "inline-flex", alignItems: "baseline", gap: 5 }} data-tip="Uploaded a CSR">
+                  <span style={{ fontSize: 22, fontWeight: 300, color: "#CBD5E1", lineHeight: 1 }}>/</span>
+                  <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: x.also.fg }}>{num(Math.round(x.also.v * k))}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: x.also.fg }}>{x.also.label}</span>
+                </span>
+              )}
+            </span>
+            <span style={{ position: "relative", height: 4, borderRadius: 2, background: "#EEF2F6", overflow: "hidden" }}>
+              <span className="grow" style={{ display: "block", height: "100%", width: `${stats.total ? (x.v / stats.total) * 100 : 0}%`, background: x.bar, borderRadius: 2, animationDelay: `${0.5 + i * 0.06}s`, transition: "width .6s ease" }} />
+              {x.also && <span className="grow" style={{ position: "absolute", left: 0, top: 0, display: "block", height: "100%", width: `${stats.total ? (x.also.v / stats.total) * 100 : 0}%`, background: x.also.bar, borderRadius: 2, animationDelay: `${0.56 + i * 0.06}s`, transition: "width .6s ease" }} />}
+            </span>
             <span style={{ fontSize: 12, color: "#64748B" }}>{x.note}</span>
           </div>
         ))}
