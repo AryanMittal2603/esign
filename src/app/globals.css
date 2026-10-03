@@ -389,3 +389,10 @@ html:not([lang="en"]) :is(.h1,.entry-title,.intro-h){letter-spacing:-.01em;line-
 .entry-sheet{padding-top:16px}
 .how{background:#FFFFFF;border:1px solid #D4DEE0;box-shadow:0 1px 0 #14284408,0 22px 44px -32px #14284455}
 .how-step:nth-child(3) .how-ico{background:#B76A3B}
+
+/* rings + icon tiles in blue; copper stays a sparing accent */
+.stat-ico.copper{background:#E6ECF4;color:#2F4F7A}
+.how-step:nth-child(3) .how-ico{background:#2F4F7A}
+.how-step.done .how-ico{background:#4A6A94}
+.glass-card:nth-child(3) .glass-ico{background:#2F4F7A;box-shadow:0 10px 22px -12px #2F4F7A}
+.lang-check{background:#2F4F7A}

@@ -13,12 +13,12 @@ export function Ring({ pct, size = 64, dark = false }: { pct: number; size?: num
     <div style={{ position: "relative", width: size, height: size, flex: "none" }}>
       <svg width={size} height={size} viewBox="0 0 84 84" fill="none" aria-hidden="true" style={{ transform: "rotate(-90deg)" }}>
         <circle cx="42" cy="42" r="34" stroke={dark ? "#FFFFFF1F" : "#E6ECF4"} strokeWidth={stroke} />
-        {pct > 0 && <circle cx="42" cy="42" r="34" stroke={dark ? "#CB8A60" : "#B76A3B"} strokeWidth={stroke} strokeLinecap="round" pathLength={100} strokeDasharray={`${Math.max(0.5, pct).toFixed(1)} 100`} style={{ transition: "stroke-dasharray .6s ease" }} />}
+        {pct > 0 && <circle cx="42" cy="42" r="34" stroke={dark ? "#A7B9D1" : "#2F4F7A"} strokeWidth={stroke} strokeLinecap="round" pathLength={100} strokeDasharray={`${Math.max(0.5, pct).toFixed(1)} 100`} style={{ transition: "stroke-dasharray .6s ease" }} />}
       </svg>
       {size >= 48 ? (
         <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontWeight: 800, fontSize: size * (done ? 0.19 : 0.24), letterSpacing: "-0.03em", color: dark ? "#FFFFFF" : "#142844" }}>{Math.round(pct)}%</span>
       ) : done ? (
-        <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#B76A3B" }}>
+        <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#2F4F7A" }}>
           <svg width={size * 0.4} height={size * 0.4} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
         </span>
       ) : null}
