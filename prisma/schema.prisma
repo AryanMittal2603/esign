@@ -65,6 +65,7 @@ model Signatory {
   photoKey     String?
   photoAt      DateTime?
   faceCheck    String? // "passed" | "unavailable"
+  liveness     String? // "passed" (blink + head turn) | "unavailable"
   geoLat       Float?
   geoLng       Float?
   geoAccuracy  Float?

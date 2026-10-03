@@ -17,7 +17,7 @@ type Data = {
   centreName?: string;
   status?: string;
   draft?: { pages: number; size: number; uploadedAt: string } | null;
-  photo?: { at: string; lat: number; lng: number; accuracy: number | null; face: string } | null;
+  photo?: { at: string; lat: number; lng: number; accuracy: number | null; face: string; liveness?: string | null } | null;
   consentAt?: string | null;
   signed?: { at: string; documentId: string; pages: number } | null;
   directUpload?: { prefix: string } | null;
@@ -380,7 +380,9 @@ function PhotoStep({ token, data, onDone }: { token: string; data: Data; onDone:
   }, []);
   useEffect(() => { if (!shot) locate(); }, [shot, locate]);
 
-  const canCapture = !!geo && (face === "one" || face === "unavailable") && !camErr;
+  const live = face === "passed";
+  const canCapture = !!geo && (live || face === "unavailable") && !camErr;
+  const stepIdx = face === "blink" ? 1 : face === "turn" || face === "center" ? 2 : live ? 3 : 0;
 
   const capture = async () => {
     if (!cam.current || !geo) return;
@@ -392,18 +394,30 @@ function PhotoStep({ token, data, onDone }: { token: string; data: Data; onDone:
       form.append("lat", String(geo.lat));
       form.append("lng", String(geo.lng));
       form.append("accuracy", String(geo.accuracy));
-      form.append("face", face === "one" ? "passed" : "unavailable");
+      form.append("face", live ? "passed" : "unavailable");
+      form.append("liveness", live ? "passed" : "unavailable");
       await uploadWithProgress(`/api/sign/${token}/photo`, form, () => {});
       setShot(URL.createObjectURL(blob));
       setFresh(true);
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   };
 
-  const badge = camErr ? null
-    : face === "one" ? <span className="chip pop" style={chipDark("#E3F0EC", "#2E7567")}>Face detected · 1 person</span>
-    : face === "many" ? <span className="chip pop" style={chipDark("#F7EDD5", "#7E5B12")}>Only you should be in the photo</span>
-    : face === "unavailable" ? <span className="chip pop" style={chipDark("#FFFFFF2A", "#FFFFFF")}>Face check unavailable · photo still recorded</span>
-    : <span className="chip" style={chipDark("#FFFFFF1F", "#FFFFFF")}>{face === "none" ? "Bring your face into the oval" : "Looking for your face…"}</span>;
+  const prompt: Record<FaceState, string> = {
+    starting: "Starting camera…",
+    loading: "Getting ready…",
+    none: "Bring your face into the oval",
+    many: "Only you should be in the photo",
+    blink: "Blink once",
+    turn: "Turn your head slightly left or right",
+    center: "Now look straight at the camera",
+    passed: "Liveness confirmed · tap Capture",
+    unavailable: "Liveness check not supported here · photo still recorded",
+  };
+  const badge = camErr ? null : (
+    <span key={face} className="chip pop" style={live ? chipDark("#E3F0EC", "#2E7567") : face === "many" ? chipDark("#F7EDD5", "#7E5B12") : chipDark("#FFFFFFE6", "#142844")}>
+      {prompt[face]}
+    </span>
+  );
 
   return (
     <div className="screen">
@@ -425,7 +439,7 @@ function PhotoStep({ token, data, onDone }: { token: string; data: Data; onDone:
           <>
             <FaceCamera key={camKey} ref={cam} onFace={setFace} onError={setCamErr} />
             <svg viewBox="0 0 342 388" fill="none" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} preserveAspectRatio="none">
-              <ellipse cx="171" cy="184" rx="104" ry="138" stroke={face === "one" ? "#5FD0B0" : "#FFFFFF"} strokeOpacity={face === "one" ? 1 : 0.6} strokeWidth={face === "one" ? 3.5 : 2} pathLength={1} className="draw" style={{ animationDelay: "1s", transition: "stroke .3s" }} />
+              <ellipse cx="171" cy="184" rx="104" ry="138" stroke={live ? "#5FD0B0" : stepIdx > 0 ? "#FFD27A" : "#FFFFFF"} strokeOpacity={live || stepIdx > 0 ? 1 : 0.6} strokeWidth={live ? 3.5 : stepIdx > 0 ? 3 : 2} pathLength={1} className="draw" style={{ animationDelay: "1s", transition: "stroke .3s" }} />
             </svg>
             {camErr && (
               <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 24, color: "#fff", textAlign: "center", fontSize: 14, lineHeight: 1.5 }}>
@@ -433,7 +447,20 @@ function PhotoStep({ token, data, onDone }: { token: string; data: Data; onDone:
                 <button className="btn btn-line btn-sm" type="button" onClick={() => { setCamErr(""); setFace("starting"); setCamKey((k) => k + 1); }}>Try again</button>
               </div>
             )}
-            <div style={{ position: "absolute", left: 0, right: 0, bottom: 16, display: "grid", placeItems: "center" }}>{badge}</div>
+            {!camErr && face !== "unavailable" && (
+              <div style={{ position: "absolute", top: 14, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 6 }} aria-label="Liveness steps">
+                {["Face", "Blink", "Turn"].map((l, i) => {
+                  const done = stepIdx > i;
+                  const cur = stepIdx === i && face !== "none" && face !== "many" && face !== "starting" && face !== "loading";
+                  return (
+                    <span key={l} className="chip" style={{ height: 24, background: done ? "#2E7567" : cur ? "#FFFFFF" : "#FFFFFF33", color: done ? "#fff" : cur ? "#142844" : "#FFFFFFCC", transition: "background-color .3s, color .3s" }}>
+                      {done ? "✓ " : ""}{l}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            <div style={{ position: "absolute", left: 12, right: 12, bottom: 16, display: "grid", placeItems: "center", textAlign: "center" }}>{badge}</div>
           </>
         )}
       </div>
@@ -512,7 +539,7 @@ function ConsentStep({ token, data, onSent }: { token: string; data: Data; onSen
             // eslint-disable-next-line @next/next/no-img-element
             <img src={`/api/sign/${token}/photo?v=${encodeURIComponent(data.photo?.at ?? "")}`} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", background: "#2A4A78" }} />
           }
-          title="Live photo" sub={`${data.photo?.face === "passed" ? "Face detected" : "Live camera"} · ${fmtTimeIST(data.photo?.at)}`} delay={1.1}
+          title="Live photo" sub={`${data.photo?.liveness === "passed" ? "Liveness passed" : data.photo?.face === "passed" ? "Face detected" : "Live camera"} · ${fmtTimeIST(data.photo?.at)}`} delay={1.1}
         />
         <SummaryRow
           icon={<span style={{ width: 38, height: 38, borderRadius: "50%", background: "#E3F0EC", display: "grid", placeItems: "center" }}><Icon name="pin" size={17} stroke={2} color="#2E7567" /></span>}

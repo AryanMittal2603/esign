@@ -30,7 +30,7 @@ export function serialise(ctx: SignerCtx) {
     centreName: s.centreName,
     status: s.status,
     draft: s.draftKey ? { pages: s.draftPages, size: s.draftSize, uploadedAt: s.uploadedAt } : null,
-    photo: s.photoKey ? { at: s.photoAt, lat: s.geoLat, lng: s.geoLng, accuracy: s.geoAccuracy, face: s.faceCheck } : null,
+    photo: s.photoKey ? { at: s.photoAt, lat: s.geoLat, lng: s.geoLng, accuracy: s.geoAccuracy, face: s.faceCheck, liveness: s.liveness } : null,
     consentAt: s.consentAt,
     signed: s.signedAt ? { at: s.signedAt, documentId: s.documentId, pages: s.draftPages } : null,
     // On Vercel the browser uploads scans straight to private Blob storage (no 4.5 MB request limit).

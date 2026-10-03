@@ -29,6 +29,7 @@ export function actionText(action: string, details?: unknown): string {
   const d = (details ?? {}) as Record<string, unknown>;
   if ((action === "CSR_UPLOADED" || action === "CSR_REPLACED") && d.pages) return `${base} · ${d.pages} page${d.pages === 1 ? "" : "s"}`;
   if (action === "LINK_SENT" && d.via) return `${base} by ${d.via}`;
+  if (action === "PHOTO_CAPTURED" && d.liveness === "passed") return "Live photo captured · liveness passed · location recorded";
   if (action === "SIGNATORIES_IMPORTED" && d.count) return `${base} · ${d.count} rows`;
   if (action === "PROJECT_DELETED" && d.name) return `${base} · ${d.name} (${d.signatories ?? 0} signatories, ${d.files ?? 0} stored files)`;
   return base;

@@ -2,9 +2,14 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 
-const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite";
+const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 
-export type FaceState = "starting" | "loading" | "none" | "one" | "many" | "unavailable";
+/**
+ * Liveness flow (all on-device):
+ *   starting → loading → none/many → blink → turn → center → passed
+ * "unavailable" means the model could not run on this device; capture is still allowed and recorded as such.
+ */
+export type FaceState = "starting" | "loading" | "none" | "many" | "blink" | "turn" | "center" | "passed" | "unavailable";
 export type Geo = { lat: number; lng: number; accuracy: number };
 export type CameraHandle = { capture: () => Promise<Blob> };
 
@@ -13,7 +18,20 @@ type Props = {
   onError: (msg: string) => void;
 };
 
-/** Live front camera with in-browser face detection (MediaPipe). No frames leave the device until capture. */
+type Landmarker = {
+  detectForVideo: (v: HTMLVideoElement, t: number) => {
+    faceLandmarks: { x: number; y: number; z: number }[][];
+    faceBlendshapes?: { categories: { categoryName: string; score: number }[] }[];
+  };
+  close: () => void;
+};
+
+const BLINK_CLOSED = 0.45; // both eyes at least this closed
+const BLINK_OPEN = 0.22;   // and then open again
+const TURN = 0.12;         // nose offset vs. cheek midpoint, as a fraction of face width
+const CENTER = 0.06;
+
+/** Live front camera with on-device face landmarks (MediaPipe). No frames leave the device until capture. */
 export const FaceCamera = forwardRef<CameraHandle, Props>(function FaceCamera({ onFace, onError }, ref) {
   const video = useRef<HTMLVideoElement>(null);
   const [face, setFace] = useState<FaceState>("starting");
@@ -25,8 +43,9 @@ export const FaceCamera = forwardRef<CameraHandle, Props>(function FaceCamera({ 
     let stream: MediaStream | null = null;
     let raf = 0;
     let stopped = false;
-    let detector: { detectForVideo: (v: HTMLVideoElement, t: number) => { detections: unknown[] }; close: () => void } | null = null;
-    const set = (s: FaceState) => { setFace(s); cbs.current.onFace(s); };
+    let marker: Landmarker | null = null;
+    let state: FaceState = "starting";
+    const set = (s: FaceState) => { if (s !== state) { state = s; setFace(s); cbs.current.onFace(s); } };
 
     (async () => {
       try {
@@ -45,32 +64,61 @@ export const FaceCamera = forwardRef<CameraHandle, Props>(function FaceCamera({ 
       }
 
       try {
-        const { FilesetResolver, FaceDetector } = await import("@mediapipe/tasks-vision");
+        const { FilesetResolver, FaceLandmarker } = await import("@mediapipe/tasks-vision");
         const vision = await FilesetResolver.forVisionTasks("/mediapipe/wasm");
-        detector = await FaceDetector.createFromOptions(vision, {
+        marker = (await FaceLandmarker.createFromOptions(vision, {
           baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
           runningMode: "VIDEO",
-          minDetectionConfidence: 0.6,
-        });
+          numFaces: 2,
+          outputFaceBlendshapes: true,
+          minFaceDetectionConfidence: 0.6,
+          minTrackingConfidence: 0.5,
+        })) as unknown as Landmarker;
       } catch {
         set("unavailable");
         return;
       }
-      if (stopped) { detector.close(); return; }
+      if (stopped) { marker.close(); return; }
 
+      // liveness progress survives brief tracking gaps, but resets if a second face appears
+      let blinkClosed = false, blinked = false, turned = false, passed = false;
+      let streak = { key: "", n: 0 };
       let last = 0;
-      let streak = { s: "none" as FaceState, n: 0 };
+      const stable = (key: string) => { streak = streak.key === key ? { key, n: streak.n + 1 } : { key, n: 1 }; return streak.n >= 3; };
+
       const loop = (now: number) => {
         if (stopped) return;
         const v = video.current;
-        if (v && v.readyState >= 2 && now - last > 140) {
+        if (v && v.readyState >= 2 && now - last > 90) {
           last = now;
           try {
-            const n = detector!.detectForVideo(v, now).detections.length;
-            const s: FaceState = n === 0 ? "none" : n === 1 ? "one" : "many";
-            // require a few stable frames so the badge doesn't flicker
-            streak = streak.s === s ? { s, n: streak.n + 1 } : { s, n: 1 };
-            if (streak.n === 3) set(s);
+            const r = marker!.detectForVideo(v, now);
+            const n = r.faceLandmarks.length;
+            if (n === 0) { if (stable("none")) set(passed ? "passed" : "none"); }
+            else if (n > 1) { blinkClosed = blinked = turned = passed = false; if (stable("many")) set("many"); }
+            else {
+              const lm = r.faceLandmarks[0];
+              const cats = r.faceBlendshapes?.[0]?.categories ?? [];
+              const score = (name: string) => cats.find((c) => c.categoryName === name)?.score ?? 0;
+              const eyes = Math.min(score("eyeBlinkLeft"), score("eyeBlinkRight"));
+              const eyesOpen = Math.max(score("eyeBlinkLeft"), score("eyeBlinkRight")) < BLINK_OPEN;
+              const nose = lm[1], left = lm[234], right = lm[454];
+              const yaw = (nose.x - (left.x + right.x) / 2) / Math.max(0.01, Math.abs(right.x - left.x));
+
+              if (!blinked) {
+                if (eyes > BLINK_CLOSED) blinkClosed = true;
+                else if (blinkClosed && eyesOpen) blinked = true;
+                set(blinked ? "turn" : "blink");
+              } else if (!turned) {
+                if (Math.abs(yaw) > TURN) turned = true;
+                set(turned ? "center" : "turn");
+              } else if (!passed) {
+                if (Math.abs(yaw) < CENTER && eyesOpen) passed = true;
+                set(passed ? "passed" : "center");
+              } else {
+                set("passed");
+              }
+            }
           } catch { /* skip frame */ }
         }
         raf = requestAnimationFrame(loop);
@@ -81,7 +129,7 @@ export const FaceCamera = forwardRef<CameraHandle, Props>(function FaceCamera({ 
     return () => {
       stopped = true;
       cancelAnimationFrame(raf);
-      detector?.close();
+      marker?.close();
       stream?.getTracks().forEach((t) => t.stop());
     };
   }, []);

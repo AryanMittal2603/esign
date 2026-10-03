@@ -1,4 +1,5 @@
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, degrees, rgb } from "pdf-lib";
+import { GUILLOCHE_INK, IMPRESSION_INK, drawGuilloche, drawHalftone, halftoneGrid, type Halftone } from "./impression";
 
 /* ── palette (matches the UI) ── */
 const hex = (h: string) => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
@@ -101,12 +102,14 @@ export type SignInput = {
   geo: { lat: number; lng: number; accuracy?: number | null } | null;
   photoAtText: string;
   faceCheck: string;
+  liveness: string;
   device: string;
   ip: string;
   trail: { at: string; what: string }[];
 };
 
 type Fonts = { reg: PDFFont; bold: PDFFont; mono: PDFFont };
+type Impressions = { mini: Halftone; big: Halftone } | null;
 
 function seal(page: PDFPage, cx: number, cy: number, r: number) {
   page.drawCircle({ x: cx, y: cy, size: r, borderColor: C.green, borderWidth: Math.max(1, r * 0.09) });
@@ -116,7 +119,7 @@ function seal(page: PDFPage, cx: number, cy: number, r: number) {
   page.drawLine({ start: { x: cx - k * 0.25, y: cy - k * 0.7 }, end: { x: cx + k * 1.05, y: cy + k * 0.75 }, thickness: Math.max(1.2, r * 0.13), color: C.white });
 }
 
-function drawStrip(page: PDFPage, width: number, f: Fonts, photo: PDFImage, inp: SignInput, i: number, n: number) {
+function drawStrip(page: PDFPage, width: number, f: Fonts, photo: PDFImage, inp: SignInput, i: number, n: number, imp: Impressions) {
   page.drawRectangle({ x: 0, y: 0, width, height: STRIP, color: C.paper });
   page.drawLine({ start: { x: 0, y: STRIP }, end: { x: width, y: STRIP }, thickness: 0.8, color: C.line, dashArray: [3, 3] });
 
@@ -124,7 +127,15 @@ function drawStrip(page: PDFPage, width: number, f: Fonts, photo: PDFImage, inp:
   page.drawRectangle({ x: 13, y: 7, width: pw + 2, height: ph + 2, color: C.green });
   page.drawImage(photo, { x: 14, y: 8, width: pw, height: ph });
 
-  const x = 14 + pw + 12;
+  // facial impression: halftone of the live photo over a guilloche patch
+  let x = 14 + pw + 12;
+  if (imp) {
+    const gx = 14 + pw + 6, gw = 38, gh = ph + 2;
+    page.drawRectangle({ x: gx, y: 7, width: gw, height: gh, color: rgb(0.95, 0.97, 0.99), borderColor: C.soft, borderWidth: 0.5 });
+    drawGuilloche(page, gx, 7, gw, gh, { color: GUILLOCHE_INK, font: f.mono, micro: inp.documentId, lines: 7 });
+    drawHalftone(page, imp.mini, gx + 2, 8, gw - 4, gh - 2, IMPRESSION_INK, 0.85);
+    x = gx + gw + 12;
+  }
   const right = 118;
   const max = width - x - right;
   page.drawText(fit(`Digitally signed by ${inp.signer.name}`, f.bold, 9.5, max), { x, y: STRIP - 17, size: 9.5, font: f.bold, color: C.ink });
@@ -149,6 +160,12 @@ export async function signPdf(inp: SignInput): Promise<Uint8Array> {
     mono: await out.embedFont(StandardFonts.Courier),
   };
   const photo = await out.embedJpg(inp.photoJpeg);
+  let imp: Impressions = null;
+  try {
+    imp = { mini: halftoneGrid(inp.photoJpeg, 18, 24), big: halftoneGrid(inp.photoJpeg, 42, 56) };
+  } catch {
+    imp = null; // never block signing on the decorative impression
+  }
   const srcPages = src.getPages();
   const n = srcPages.length + 1; // + certificate
 
@@ -165,10 +182,10 @@ export async function signPdf(inp: SignInput): Promise<Uint8Array> {
     else if (rot === 90) page.drawPage(emb, { x: 0, y: STRIP + w, rotate: degrees(-90) });
     else if (rot === 180) page.drawPage(emb, { x: w, y: STRIP + h, rotate: degrees(180) });
     else page.drawPage(emb, { x: h, y: STRIP, rotate: degrees(90) });
-    drawStrip(page, vw, f, photo, inp, i, n);
+    drawStrip(page, vw, f, photo, inp, i, n, imp);
   }
 
-  drawCertificate(out.addPage([A4.w, A4.h]), f, photo, inp, n);
+  drawCertificate(out.addPage([A4.w, A4.h]), f, photo, inp, n, imp);
 
   out.setTitle(`Signed CSR · Centre ${inp.centre.code} · ${inp.documentId}`);
   out.setAuthor(pdfSafe(inp.signer.name));
@@ -179,7 +196,7 @@ export async function signPdf(inp: SignInput): Promise<Uint8Array> {
   return out.save();
 }
 
-function drawCertificate(page: PDFPage, f: Fonts, photo: PDFImage, inp: SignInput, n: number) {
+function drawCertificate(page: PDFPage, f: Fonts, photo: PDFImage, inp: SignInput, n: number, imp: Impressions) {
   const W = A4.w, H = A4.h, M = 46;
   page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: C.paper });
 
@@ -225,7 +242,7 @@ function drawCertificate(page: PDFPage, f: Fonts, photo: PDFImage, inp: SignInpu
     ["Location", inp.geo ? `${inp.geo.lat.toFixed(6)}, ${inp.geo.lng.toFixed(6)}${inp.geo.accuracy ? ` · ±${Math.round(inp.geo.accuracy)} m` : ""}` : "Not available"],
     ["Device", inp.device],
     ["IP address", inp.ip],
-    ["Face check", inp.faceCheck === "passed" ? "One face detected in live camera" : "Live camera photo (face check unavailable)"],
+    ["Liveness", inp.liveness === "passed" ? "Passed · one live face, blinked and turned head" : inp.faceCheck === "passed" ? "One face detected in live camera (liveness not supported on device)" : "Live camera photo (face check unavailable)"],
     ["Document", `${n - 1} page${n - 1 === 1 ? "" : "s"} + this certificate`],
   ];
   let fy = top;
@@ -237,8 +254,25 @@ function drawCertificate(page: PDFPage, f: Fonts, photo: PDFImage, inp: SignInpu
     page.drawLine({ start: { x: fx, y: fy }, end: { x: W - M, y: fy }, thickness: 0.6, color: C.soft });
   }
 
+  let by = Math.min(fy, top - pH - 26) - 14;
+
+  // facial impression band (passport-style secondary portrait)
+  if (imp) {
+    const bh2 = 100, bw = W - M * 2;
+    page.drawRectangle({ x: M, y: by - bh2, width: bw, height: bh2, color: rgb(0.96, 0.975, 0.99), borderColor: C.soft, borderWidth: 0.8 });
+    drawGuilloche(page, M, by - bh2, bw, bh2, { color: GUILLOCHE_INK, font: f.mono, micro: `${inp.documentId} · SEQRESIGN · ${inp.signer.name.toUpperCase()}`, lines: 18 });
+    const gw = 72, gh = 96;
+    drawHalftone(page, imp.big, M + 16, by - bh2 + 2, gw, gh, IMPRESSION_INK, 0.92);
+    const tx = M + 16 + gw + 20;
+    page.drawRectangle({ x: tx - 8, y: by - bh2 + 20, width: 300, height: 62, color: rgb(0.96, 0.975, 0.99), opacity: 0.88 });
+    page.drawText("FACIAL IMPRESSION", { x: tx, y: by - 32, size: 6.8, font: f.mono, color: C.quiet });
+    page.drawText("Rendered from the live photo signature", { x: tx, y: by - 47, size: 11, font: f.bold, color: C.ink });
+    page.drawText(fit(`Captured ${inp.photoAtText} · ${inp.liveness === "passed" ? "liveness passed (blink + head turn)" : "liveness not available"}`, f.reg, 8, 290), { x: tx, y: by - 61, size: 8, font: f.reg, color: C.quiet });
+    page.drawText(fit("Vector halftone over a guilloche pattern - altering the photo breaks the print.", f.reg, 7.4, 290), { x: tx, y: by - 74, size: 7.4, font: f.reg, color: C.quiet });
+    by -= bh2 + 14;
+  }
+
   // OTP block
-  let by = Math.min(fy, top - pH - 26) - 18;
   const bh = 62;
   page.drawRectangle({ x: M, y: by - bh, width: W - M * 2, height: bh, color: C.white, borderColor: C.soft, borderWidth: 0.8 });
   const colW = (W - M * 2) / 3;
@@ -258,8 +292,8 @@ function drawCertificate(page: PDFPage, f: Fonts, photo: PDFImage, inp: SignInpu
   by -= bh + 26;
   page.drawText("AUDIT TRAIL", { x: M, y: by, size: 7, font: f.mono, color: C.quiet });
   by -= 16;
-  for (const row of inp.trail.slice(-14)) {
-    if (by < 120) break;
+  for (const row of inp.trail.slice(-12)) {
+    if (by < 100) break;
     page.drawText(fit(row.at, f.mono, 7.6, 60), { x: M, y: by, size: 7.6, font: f.mono, color: C.quiet });
     page.drawCircle({ x: M + 66, y: by + 2.6, size: 2.4, color: C.green });
     page.drawText(fit(row.what, f.reg, 8.6, W - M * 2 - 80), { x: M + 76, y: by, size: 8.6, font: f.reg, color: C.ink });

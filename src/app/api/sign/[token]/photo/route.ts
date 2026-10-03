@@ -30,6 +30,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   const hasGeo = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && !(lat === 0 && lng === 0);
   if (!hasGeo) return fail("Location is required. Allow location access and try again.");
   const face = form?.get("face") === "passed" ? "passed" : "unavailable";
+  const liveness = form?.get("liveness") === "passed" ? "passed" : "unavailable";
 
   const key = `projects/${s.projectId}/${s.id}/photo-${Date.now()}.jpg`;
   await putFile(key, bytes);
@@ -37,13 +38,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   const at = new Date();
   await db.signatory.update({
     where: { id: s.id },
-    data: { photoKey: key, photoAt: at, faceCheck: face, geoLat: lat, geoLng: lng, geoAccuracy: Number.isFinite(accuracy) ? accuracy : null },
+    data: { photoKey: key, photoAt: at, faceCheck: face, liveness, geoLat: lat, geoLng: lng, geoAccuracy: Number.isFinite(accuracy) ? accuracy : null },
   });
   await audit({
     action: "PHOTO_CAPTURED", actor: "SIGNATORY", projectId: s.projectId, signatoryId: s.id,
-    details: { lat, lng, accuracy: Number.isFinite(accuracy) ? accuracy : null, face }, ...clientInfo(req),
+    details: { lat, lng, accuracy: Number.isFinite(accuracy) ? accuracy : null, face, liveness }, ...clientInfo(req),
   });
-  return ok({ at, face });
+  return ok({ at, face, liveness });
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ token: string }> }) {

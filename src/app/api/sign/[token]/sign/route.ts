@@ -55,6 +55,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
     geo: s.geoLat != null && s.geoLng != null ? { lat: s.geoLat, lng: s.geoLng, accuracy: s.geoAccuracy } : null,
     photoAtText: s.photoAt ? `${fmtTimeIST(s.photoAt)} IST` : "",
     faceCheck: s.faceCheck ?? "unavailable",
+    liveness: s.liveness ?? "unavailable",
     device: describeDevice(info.userAgent),
     ip: info.ip,
     trail,

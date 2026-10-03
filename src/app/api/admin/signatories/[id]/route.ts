@@ -19,7 +19,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     project: { id: s.project.id, name: s.project.name },
     link: signingLink(s.token),
     linkSentAt: s.linkSentAt, openedAt: s.openedAt, verifiedAt: s.verifiedAt, uploadedAt: s.uploadedAt, pages: s.draftPages,
-    photoAt: s.photoAt, faceCheck: s.faceCheck, geo: s.geoLat != null ? { lat: s.geoLat, lng: s.geoLng, accuracy: s.geoAccuracy } : null,
+    photoAt: s.photoAt, faceCheck: s.faceCheck, liveness: s.liveness, geo: s.geoLat != null ? { lat: s.geoLat, lng: s.geoLng, accuracy: s.geoAccuracy } : null,
     signedAt: s.signedAt, documentId: s.documentId, otpRef: s.otpRef, signedHash: s.signedHash,
     device: s.signUserAgent ? describeDevice(s.signUserAgent) : null, signIp: s.signIp,
     hasPhoto: !!s.photoKey, hasDraft: !!s.draftKey, hasSigned: !!s.signedKey,
