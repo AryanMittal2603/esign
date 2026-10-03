@@ -66,7 +66,7 @@ function Login() {
         </div>
       </div>
 
-      <div style={{ flex: "1 1 480px", minWidth: 0, padding: "clamp(14px, 4vw, 56px)", display: "grid", placeItems: "center" }}>
+      <div style={{ flex: "1 1 480px", minWidth: 0, padding: "clamp(14px, 4vw, 56px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <form className="card up" noValidate onSubmit={submit} style={{ animationDelay: ".6s", width: "min(100%, 500px)", padding: "clamp(28px, 4vw, 44px) clamp(20px, 4vw, 44px)", display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <Kicker delay={0.8}>Super Admin</Kicker>
@@ -82,12 +82,10 @@ function Login() {
           </label>
           <ErrorBox>{err}</ErrorBox>
           <button className="btn btn-ink" type="submit" disabled={busy} style={{ width: "100%", minHeight: 52 }}>{busy ? <Spinner /> : null} Sign in</button>
-          <div style={{ height: 1, background: "#E6ECEC" }} />
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start", fontSize: 14, lineHeight: 1.5, color: "#637383" }}>
-            <Icon name="phone" size={20} style={{ marginTop: 1 }} color="#142844" />
-            <span>Signing a CSR? Open the link from your SMS, or <a href="/sign">verify your mobile number</a>.</span>
-          </div>
         </form>
+        <a className="mono fade" href="/sign" style={{ animationDelay: "1.2s", marginTop: 18, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "#637383" }}>
+          <Icon name="phone" size={14} stroke={2} /> Signatory? Sign in with your mobile
+        </a>
       </div>
     </div>
   );
