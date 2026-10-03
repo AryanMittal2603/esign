@@ -138,21 +138,3 @@ export function LangButton({ light = false }: { light?: boolean }) {
   );
 }
 
-/** Upload → Photo → Sign strip shown on the entry screens. */
-export function HowItWorks({ uploaded = false, delay = 1.25 }: { uploaded?: boolean; delay?: number }) {
-  const { t } = useI18n();
-  return (
-    <div className="how up" style={{ animationDelay: `${delay}s` }}>
-      {([["upload", "step.upload"], ["camera", "step.photo"], ["pen", "step.sign"]] as const).map(([icon, key], i) => {
-        const done = uploaded && i === 0;
-        return (
-          <div key={key} className={`how-step${done ? " done" : ""}`}>
-            <span className="how-ico">{done ? <Icon name="check" size={18} stroke={2.6} /> : <Icon name={icon} size={18} stroke={2} />}</span>
-            <span className="how-n mono">{i + 1}</span>
-            <span className="how-l">{t(key)}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}

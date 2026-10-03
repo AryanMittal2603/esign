@@ -355,14 +355,6 @@ h1,h2,h3{margin:0}
 /* Indic scripts: letter-spacing breaks conjuncts */
 html:not([lang="en"]) :is(.kicker,.intro-kicker,.label,.kv>span:first-child,.mono,.chip,.lang-btn,.lang-en){letter-spacing:0;font-family:var(--font-sans)}
 html:not([lang="en"]) :is(.h1,.entry-title,.intro-h){letter-spacing:-.01em;line-height:1.2}
-.how{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:16px 10px;border-radius:18px;background:#FFFFFFB3;border:1px solid #E3E9F1}
-.how::before{content:"";position:absolute;left:18%;right:18%;top:36px;height:2px;background:repeating-linear-gradient(90deg,#CDD8E6 0 6px,transparent 6px 11px)}
-.how-step{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
-.how-ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#142844;color:#fff;box-shadow:0 10px 20px -12px #142844}
-.how-step:nth-child(3) .how-ico{background:linear-gradient(135deg,#CB8A60,#8C4B26)}
-.how-step.done .how-ico{background:#B76A3B}
-.how-n{font-size:10px;color:#7590B4}
-.how-l{font-size:13px;font-weight:700;color:#142844;line-height:1.2}
 
 /* signatory intro + entry: current light theme (paper/sky, navy ink, copper accent) */
 .intro{background:none;color:#142844;display:flex;flex-direction:column}
@@ -387,13 +379,9 @@ html:not([lang="en"]) :is(.h1,.entry-title,.intro-h){letter-spacing:-.01em;line-
 .entry-hero .kicker{color:#9A5530}
 .entry-sub{color:#637383}
 .entry-sheet{padding-top:16px}
-.how{background:#FFFFFF;border:1px solid #D4DEE0;box-shadow:0 1px 0 #14284408,0 22px 44px -32px #14284455}
-.how-step:nth-child(3) .how-ico{background:#B76A3B}
 
 /* rings + icon tiles in blue; copper stays a sparing accent */
 .stat-ico.copper{background:#E6ECF4;color:#2F4F7A}
-.how-step:nth-child(3) .how-ico{background:#2F4F7A}
-.how-step.done .how-ico{background:#4A6A94}
 .glass-card:nth-child(3) .glass-ico{background:#2F4F7A;box-shadow:0 10px 22px -12px #2F4F7A}
 .lang-check{background:#2F4F7A}
 /* signatory app on laptops/desktops: centred card on the themed backdrop */

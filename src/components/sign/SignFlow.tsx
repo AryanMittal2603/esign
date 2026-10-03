@@ -8,7 +8,7 @@ import { PdfPreview } from "./PdfPreview";
 import { toJpeg, uploadToBlob, uploadWithProgress } from "./media";
 import { fmtBytes, fmtIST, fmtTimeIST } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
-import { HowItWorks, LangButton } from "./Intro";
+import { LangButton } from "./Intro";
 import { Rosette } from "./Rosette";
 
 type Data = {
@@ -151,7 +151,6 @@ export function SignFlow({ token }: { token: string }) {
               {(data.project.date || data.project.shift) && <div className="kv"><span>{t("kv.shift")}</span><span>{[data.project.date, data.project.shift].filter(Boolean).join(" · ")}</span></div>}
               <div className="kv"><span>{t("kv.mobile")}</span><span>+91 {data.mobileMasked}</span></div>
             </div>
-            {data.stage !== "signed" && <HowItWorks uploaded={data.stage === "uploaded"} />}
             <div style={{ flex: 1 }} />
             <ErrorBox>{err}</ErrorBox>
             <button className={`btn ${data.stage === "signed" ? "btn-line" : "btn-ink"} up`} type="button" style={{ animationDelay: "1.3s", width: "100%", minHeight: 54 }} onClick={sendAccess} disabled={busy}>
