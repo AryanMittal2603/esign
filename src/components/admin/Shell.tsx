@@ -26,7 +26,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <button type="button" aria-label="Sign out" onClick={signOut} style={{ color: "#C9D6E0", display: "grid", placeItems: "center", width: 32, height: 32, borderRadius: 9, background: "transparent", border: 0, cursor: "pointer" }}><Icon name="logout" /></button>
         </div>
       </aside>
-      <main className="stage" style={{ flex: "999 1 560px", minWidth: 0, padding: "clamp(20px, 3vw, 40px)" }}>
+      <main className="admin-main" style={{ flex: "999 1 560px", minWidth: 0, padding: "clamp(20px, 3vw, 40px)" }}>
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>{children}</div>
       </main>
     </div>

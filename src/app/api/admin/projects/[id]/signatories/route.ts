@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
-import { createSignatories, listWhere, requireAdmin, validateImport, type ListTab } from "@/lib/admin";
+import { CSR_FILTERS, DELIVERY_FILTERS, createSignatories, listWhere, requireAdmin, validateImport, type CsrFilter, type DeliveryFilter } from "@/lib/admin";
 import { signingLink } from "@/lib/sms";
 import { clientInfo, fail, ok } from "@/lib/http";
 
@@ -21,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
 /**
  * Paged signatory list for the exam table.
- * ?tab=all|signed|pending|unsent · ?q=search · ?page=0 · ?size=50 (max 100)
+ * ?csr=notstarted|opened|uploaded|signed · ?delivery=notsent|sending|sent|delivered|read|failed · ?q · ?page · ?size (max 100)
  * ?at=<index> returns just the id at that position in centre-code order (used by the signatory wall).
  */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -35,12 +35,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return row ? ok({ id: row.id }) : fail("Not found", 404);
   }
 
-  const tabs: ListTab[] = ["all", "signed", "pending", "unsent", "failed"];
-  const tab = (tabs.includes(url.searchParams.get("tab") as ListTab) ? url.searchParams.get("tab") : "all") as ListTab;
+  const csrParam = url.searchParams.get("csr");
+  const delParam = url.searchParams.get("delivery");
+  const csr = (CSR_FILTERS as readonly string[]).includes(csrParam ?? "") ? (csrParam as CsrFilter) : null;
+  const delivery = (DELIVERY_FILTERS as readonly string[]).includes(delParam ?? "") ? (delParam as DeliveryFilter) : null;
   const q = (url.searchParams.get("q") ?? "").slice(0, 100);
   const size = Math.min(100, Math.max(10, Number(url.searchParams.get("size")) || 50));
   const page = Math.max(0, Number(url.searchParams.get("page")) || 0);
-  const where = listWhere(id, tab, q);
+  const where = listWhere(id, { csr, delivery, q });
 
   const [total, rows] = await Promise.all([
     db.signatory.count({ where }),

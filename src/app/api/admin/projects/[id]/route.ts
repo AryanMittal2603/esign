@@ -7,9 +7,8 @@ import { linkSmsAvailable, smsMode } from "@/lib/sms";
 import { whatsappReady } from "@/lib/whatsapp";
 
 /**
- * Exam summary for the live tracker. Never returns the full signatory list (that is paged via
- * /signatories), so the payload stays small at any size.
- * wall: one character per signatory in centre-code order — S signed · U uploaded · O opened · L link sent · N not sent.
+ * Exam summary for the live tracker: totals plus counts for the CSR and delivery filters.
+ * Never returns the signatory list (that is paged via /signatories), so it stays small at any size.
  */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAdmin())) return fail("Sign in first", 401);
@@ -17,37 +16,30 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const p = await db.project.findUnique({ where: { id } });
   if (!p) return fail("Exam not found", 404);
 
-  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const [statsOf, recent, lastHour, statuses, delivery] = await Promise.all([
+  const [statsOf, deliveryRows, neverSent] = await Promise.all([
     statsByProject([id]),
-    db.signatory.findMany({
-      where: { projectId: id, signedAt: { not: null } },
-      orderBy: { signedAt: "desc" }, take: 6,
-      select: { id: true, name: true, centreCode: true, centreName: true, signedAt: true },
-    }),
-    db.signatory.count({ where: { projectId: id, signedAt: { gt: hourAgo } } }),
-    db.signatory.findMany({ where: { projectId: id }, orderBy: { centreCode: "asc" }, select: { status: true } }),
-    db.signatory.groupBy({ by: ["msgStatus"], where: { projectId: id, msgChannel: "WHATSAPP" }, _count: { _all: true } }),
+    db.signatory.groupBy({ by: ["msgStatus"], where: { projectId: id }, _count: { _all: true } }),
+    db.signatory.count({ where: { projectId: id, linkSentAt: null, msgStatus: null } }),
   ]);
-  const msg: Record<string, number> = {};
-  for (const d of delivery) if (d.msgStatus) msg[d.msgStatus] = d._count._all;
-  const code: Record<string, string> = { SIGNED: "S", UPLOADED: "U", VERIFIED: "O", OPENED: "O", SENT: "L", IMPORTED: "N" };
+  const stats = statsOf(id);
+  const m: Record<string, number> = {};
+  for (const d of deliveryRows) m[d.msgStatus ?? "none"] = d._count._all;
+  const delivery = {
+    notsent: neverSent,
+    sending: (m.submitted ?? 0) + (m.enqueued ?? 0),
+    sent: (m.sent ?? 0) + ((m.none ?? 0) - neverSent), // includes links shared before tracking existed
+    delivered: m.delivered ?? 0,
+    read: m.read ?? 0,
+    failed: m.failed ?? 0,
+  };
+  const b = stats.byStatus;
+  const csr = { notstarted: b.IMPORTED + b.SENT, opened: b.OPENED + b.VERIFIED, uploaded: b.UPLOADED, signed: b.SIGNED };
 
   return ok({
     project: { id: p.id, name: p.name, examName: p.examName, examDate: p.examDate, shift: p.shift, createdAt: p.createdAt },
-    stats: statsOf(id),
-    recent,
-    lastHour,
+    stats,
+    counts: { csr, delivery },
     sms: { mode: smsMode(), linkSms: linkSmsAvailable(), whatsapp: whatsappReady() },
-    wall: statuses.map((s) => code[s.status]).join(""),
-    // latest WhatsApp invitation per signatory: how far it got
-    delivery: {
-      total: Object.values(msg).reduce((a, b) => a + b, 0),
-      delivered: (msg.delivered ?? 0) + (msg.read ?? 0),
-      read: msg.read ?? 0,
-      failed: msg.failed ?? 0,
-      pending: (msg.submitted ?? 0) + (msg.enqueued ?? 0) + (msg.sent ?? 0),
-    },
     webhook: !!process.env.GUPSHUP_WEBHOOK_KEY,
   });
 }

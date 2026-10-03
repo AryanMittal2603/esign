@@ -102,22 +102,41 @@ export async function statsByProject(projectIds?: string[]) {
   return (id: string) => statsFromCounts(map.get(id) ?? {});
 }
 
-/** Signatory list filters shared by the table, the wall and exports. */
-export type ListTab = "all" | "signed" | "pending" | "unsent" | "failed";
-export function listWhere(projectId: string, tab: ListTab, q: string) {
-  const where: Record<string, unknown> = { projectId };
-  if (tab === "signed") where.status = "SIGNED";
-  else if (tab === "pending") where.status = { not: "SIGNED" };
-  else if (tab === "unsent") where.status = "IMPORTED";
-  else if (tab === "failed") { where.msgStatus = "failed"; where.status = { not: "SIGNED" }; }
-  const needle = q.trim();
+/** Table filters: CSR progress and invitation delivery. */
+export const CSR_FILTERS = ["notstarted", "opened", "uploaded", "signed"] as const;
+export const DELIVERY_FILTERS = ["notsent", "sending", "sent", "delivered", "read", "failed"] as const;
+export type CsrFilter = (typeof CSR_FILTERS)[number];
+export type DeliveryFilter = (typeof DELIVERY_FILTERS)[number];
+
+export function csrWhere(f: CsrFilter): Record<string, unknown> {
+  if (f === "notstarted") return { status: { in: ["IMPORTED", "SENT"] } };
+  if (f === "opened") return { status: { in: ["OPENED", "VERIFIED"] } };
+  if (f === "uploaded") return { status: "UPLOADED" };
+  return { status: "SIGNED" };
+}
+
+export function deliveryWhere(f: DeliveryFilter): Record<string, unknown> {
+  if (f === "notsent") return { linkSentAt: null, msgStatus: null };
+  if (f === "sending") return { msgStatus: { in: ["submitted", "enqueued"] } };
+  // links shared before tracking existed (or copied / opened in WhatsApp) count as sent
+  if (f === "sent") return { OR: [{ msgStatus: "sent" }, { msgStatus: null, linkSentAt: { not: null } }] };
+  return { msgStatus: f };
+}
+
+export function listWhere(projectId: string, opts: { csr?: CsrFilter | null; delivery?: DeliveryFilter | null; q?: string }) {
+  const and: Record<string, unknown>[] = [{ projectId }];
+  if (opts.csr) and.push(csrWhere(opts.csr));
+  if (opts.delivery) and.push(deliveryWhere(opts.delivery));
+  const needle = (opts.q ?? "").trim();
   if (needle) {
-    where.OR = [
-      { name: { contains: needle, mode: "insensitive" } },
-      { centreCode: { contains: needle, mode: "insensitive" } },
-      { centreName: { contains: needle, mode: "insensitive" } },
-      { mobile: { contains: needle.replace(/\D/g, "") || needle } },
-    ];
+    and.push({
+      OR: [
+        { name: { contains: needle, mode: "insensitive" } },
+        { centreCode: { contains: needle, mode: "insensitive" } },
+        { centreName: { contains: needle, mode: "insensitive" } },
+        { mobile: { contains: needle.replace(/\D/g, "") || needle } },
+      ],
+    });
   }
-  return where;
+  return { AND: and };
 }
